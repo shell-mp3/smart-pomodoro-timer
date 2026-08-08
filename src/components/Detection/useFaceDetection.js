@@ -42,9 +42,12 @@ export default function useFaceDetection(videoRef, enabled = false) {
       const faceLandmarksDetection = await import('@tensorflow-models/face-landmarks-detection')
 
       const model = faceLandmarksDetection.SupportedModels.MediaPipeFaceMesh
+      // The 'mediapipe' runtime breaks in production builds: bundling the CommonJS
+      // @mediapipe/face_mesh package yields a namespace whose FaceMesh is not a
+      // constructor, so createDetector throws. The tfjs runtime uses the TF.js
+      // graph model directly - same landmarks, no CDN assets, bundles cleanly.
       const detectorConfig = {
-        runtime: 'mediapipe',
-        solutionPath: 'https://cdn.jsdelivr.net/npm/@mediapipe/face_mesh',
+        runtime: 'tfjs',
         refineLandmarks: true,
         maxFaces: 1
       }
