@@ -11,7 +11,9 @@ export default function useFocusState(videoRef, enabled = false) {
     sensitivity,
     updateDetectionStates,
     processFocusState,
-    setModelsLoaded
+    setModelsLoaded,
+    setPhoneDetectionReady,
+    setModelError
   } = useFocusContext()
 
   const {
@@ -36,36 +38,50 @@ export default function useFocusState(videoRef, enabled = false) {
   const [warmupDone, setWarmupDone] = useState(false)
   const warmupTimerRef = useRef(null)
 
-  // Update loading state - only mark as loaded when both models are actually ready
+  // Face detection is what gates the UI: it loads in well under a second, while
+  // COCO-SSD takes ~15s. Waiting on both left the camera covered the whole time,
+  // so phone detection now joins late instead of holding everything up.
   useEffect(() => {
-    const modelsReady = faceModelReady && objectModelReady && !faceError && !objectError
-    setModelsLoaded(modelsReady && enabled)
-    if (modelsReady && enabled) {
-      console.log('All detection models loaded and ready')
-    }
-  }, [faceModelReady, objectModelReady, faceError, objectError, enabled, setModelsLoaded])
+    setModelsLoaded(faceModelReady && !faceError && enabled)
+  }, [faceModelReady, faceError, enabled, setModelsLoaded])
 
-  // Wait 2s after models are ready before scoring — gives the camera time to stabilize
   useEffect(() => {
-    if (faceModelReady && objectModelReady && enabled) {
+    setPhoneDetectionReady(objectModelReady && !objectError && enabled)
+  }, [objectModelReady, objectError, enabled, setPhoneDetectionReady])
+
+  // Surface load failures so the overlay can say so instead of spinning forever
+  useEffect(() => {
+    if (faceError) {
+      setModelError(`Focus detection unavailable: ${faceError}`)
+    } else if (objectError) {
+      setModelError(`Phone detection unavailable: ${objectError}`)
+    } else {
+      setModelError(null)
+    }
+  }, [faceError, objectError, setModelError])
+
+  // Wait 2s after the face model is ready before scoring — lets the camera stabilize
+  useEffect(() => {
+    if (faceModelReady && enabled) {
       warmupTimerRef.current = setTimeout(() => setWarmupDone(true), 2000)
     } else {
       setWarmupDone(false)
       if (warmupTimerRef.current) clearTimeout(warmupTimerRef.current)
     }
     return () => { if (warmupTimerRef.current) clearTimeout(warmupTimerRef.current) }
-  }, [faceModelReady, objectModelReady, enabled])
+  }, [faceModelReady, enabled])
 
   // Process combined detection states - only when models are loaded
   useEffect(() => {
-    // Don't process until both models are ready and warmup has passed
-    if (!enabled || processingRef.current || !faceModelReady || !objectModelReady || !warmupDone) return
+    // Scoring starts once the face model is ready and warmup has passed. Phone
+    // state stays false until COCO-SSD lands, which is a safe default.
+    if (!enabled || processingRef.current || !faceModelReady || !warmupDone) return
 
     processingRef.current = true
 
     const states = {
       faceDetected,
-      phoneDetected,
+      phoneDetected: objectModelReady ? phoneDetected : false,
       eyesOpen,
       headFacingForward
     }

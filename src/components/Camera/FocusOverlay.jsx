@@ -8,6 +8,8 @@ export default function FocusOverlay() {
     distractionReason,
     focusScore,
     modelsLoaded,
+    phoneDetectionReady,
+    modelError,
     detectionEnabled
   } = useFocusContext()
 
@@ -21,14 +23,25 @@ export default function FocusOverlay() {
     )
   }
 
+  // Load failed - say so rather than spinning forever
+  if (modelError && !modelsLoaded) {
+    return (
+      <div className="absolute inset-0 border-2 border-accent-orange/60 rounded-xl pointer-events-none">
+        <div className="absolute bottom-2 left-2 right-2">
+          <StatusBadge status="warning" text="Detection unavailable — timer still works" />
+        </div>
+      </div>
+    )
+  }
+
+  // Still loading. Deliberately no scrim: the camera is already live underneath
+  // and covering it made the feed look broken.
   if (!modelsLoaded) {
     return (
       <div className="absolute inset-0 border-2 border-dark-600 rounded-xl pointer-events-none">
-        <div className="absolute inset-0 flex items-center justify-center bg-dark-900/50">
-          <div className="flex flex-col items-center gap-2">
-            <div className="w-8 h-8 border-3 border-accent-blue border-t-transparent rounded-full animate-spin" />
-            <span className="text-sm text-dark-300">Loading AI models...</span>
-          </div>
+        <div className="absolute bottom-2 left-2 flex items-center gap-2">
+          <div className="w-3 h-3 border-2 border-accent-blue border-t-transparent rounded-full animate-spin" />
+          <StatusBadge status="loading" text="Starting detection" showDot={false} />
         </div>
       </div>
     )
@@ -53,6 +66,13 @@ export default function FocusOverlay() {
           />
           <span className="text-xs text-white font-medium">{focusScore}%</span>
         </div>
+
+        {/* COCO-SSD lands ~15s after the face model; note it until then */}
+        {!phoneDetectionReady && (
+          <div className="bg-dark-900/80 backdrop-blur-sm rounded-lg px-2 py-1">
+            <span className="text-[10px] text-dark-300">phone detection loading</span>
+          </div>
+        )}
       </div>
 
       {/* Status badge */}
