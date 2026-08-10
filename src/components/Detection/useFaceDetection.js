@@ -17,6 +17,7 @@ export default function useFaceDetection(videoRef, enabled = false) {
   const detectorRef = useRef(null)
   const animationFrameRef = useRef(null)
   const lastDetectionTimeRef = useRef(0)
+  const inFlightRef = useRef(false)
 
   const DETECTION_INTERVAL = 100 // ~10 FPS
 
@@ -66,21 +67,23 @@ export default function useFaceDetection(videoRef, enabled = false) {
   const detectFace = useCallback(async () => {
     if (!detectorRef.current || !enabled) return
 
+    // Only one inference at a time. The loop ticks faster than the model runs,
+    // and overlapping estimateFaces calls on a single TF.js model contend for the
+    // same WebGL context - they pile up and start returning zero faces, which
+    // reads as "Face not detected" even with a face plainly in frame.
+    if (inFlightRef.current) return
+
     // Get video element - handle both ref object and direct element
     const video = videoRef?.current || videoRef
-    if (!video) {
-      console.log('No video element available')
-      return
-    }
-    if (video.readyState < 2) {
-      console.log('Video not ready, readyState:', video.readyState)
-      return
-    }
+    if (!video) return
+    if (video.readyState < 2) return
+    // A stream can be ready but not yet reporting dimensions; inference on a
+    // zero-sized frame finds nothing.
+    if (!video.videoWidth || !video.videoHeight) return
 
+    inFlightRef.current = true
     try {
       const faces = await detectorRef.current.estimateFaces(video)
-
-      console.log('Faces detected:', faces.length)
 
       if (faces.length === 0) {
         setFaceDetected(false)
@@ -120,6 +123,8 @@ export default function useFaceDetection(videoRef, enabled = false) {
       }
     } catch (err) {
       console.error('Face detection error:', err)
+    } finally {
+      inFlightRef.current = false
     }
   }, [videoRef, enabled])
 

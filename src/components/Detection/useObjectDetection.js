@@ -13,6 +13,7 @@ export default function useObjectDetection(videoRef, enabled = false) {
   const modelRef = useRef(null)
   const animationFrameRef = useRef(null)
   const lastDetectionTimeRef = useRef(0)
+  const inFlightRef = useRef(false)
 
   const loadModel = useCallback(async () => {
     if (modelRef.current) {
@@ -49,16 +50,17 @@ export default function useObjectDetection(videoRef, enabled = false) {
   const detectObjects = useCallback(async () => {
     if (!modelRef.current || !videoRef?.current || !enabled) return
 
+    // COCO-SSD is the heavier of the two models. Without this guard its calls
+    // overlap and compete with face detection for the same WebGL context.
+    if (inFlightRef.current) return
+
     const video = videoRef.current
     if (video.readyState < 2) return
+    if (!video.videoWidth || !video.videoHeight) return
 
+    inFlightRef.current = true
     try {
       const predictions = await modelRef.current.detect(video)
-
-      // Log all detections for debugging
-      if (predictions.length > 0) {
-        console.log('Objects detected:', predictions.map(p => `${p.class} (${Math.round(p.score * 100)}%)`).join(', '))
-      }
 
       // Check for cell phone detection (includes 'remote' since COCO-SSD often
       // misclassifies phone backs/cases as remotes due to similar shape)
@@ -66,13 +68,11 @@ export default function useObjectDetection(videoRef, enabled = false) {
         pred => PHONE_CLASSES.includes(pred.class) && pred.score > PHONE_CONFIDENCE_THRESHOLD
       )
 
-      if (phoneDetection) {
-        console.log(`Phone detected as "${phoneDetection.class}" with confidence:`, phoneDetection.score)
-      }
-
       setPhoneDetected(!!phoneDetection)
     } catch (err) {
       console.error('Object detection error:', err)
+    } finally {
+      inFlightRef.current = false
     }
   }, [videoRef, enabled])
 
