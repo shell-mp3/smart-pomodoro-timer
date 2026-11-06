@@ -1,5 +1,6 @@
 import { useState, useEffect, useRef, useCallback } from 'react'
 import { calculateEyeAspectRatio, isHeadFacingForward, EYE_ASPECT_RATIO_THRESHOLD } from '../../utils/focusLogic'
+import { recordDetection, recordSkip, recordVideo, recordBackend, recordTensors } from '../../utils/detectStats'
 
 // MediaPipe Face Mesh eye landmark indices
 const LEFT_EYE_INDICES = [33, 160, 158, 133, 153, 144]
@@ -18,6 +19,7 @@ export default function useFaceDetection(videoRef, enabled = false) {
   const animationFrameRef = useRef(null)
   const lastDetectionTimeRef = useRef(0)
   const inFlightRef = useRef(false)
+  const tfRef = useRef(null)
 
   const DETECTION_INTERVAL = 100 // ~10 FPS
 
@@ -39,6 +41,8 @@ export default function useFaceDetection(videoRef, enabled = false) {
       await import('@tensorflow/tfjs-backend-webgl')
       await tf.setBackend('webgl')
       await tf.ready()
+      recordBackend(tf.getBackend())
+      tfRef.current = tf
 
       const faceLandmarksDetection = await import('@tensorflow-models/face-landmarks-detection')
 
@@ -71,7 +75,7 @@ export default function useFaceDetection(videoRef, enabled = false) {
     // and overlapping estimateFaces calls on a single TF.js model contend for the
     // same WebGL context - they pile up and start returning zero faces, which
     // reads as "Face not detected" even with a face plainly in frame.
-    if (inFlightRef.current) return
+    if (inFlightRef.current) { recordSkip(); return }
 
     // Get video element - handle both ref object and direct element
     const video = videoRef?.current || videoRef
@@ -80,10 +84,14 @@ export default function useFaceDetection(videoRef, enabled = false) {
     // A stream can be ready but not yet reporting dimensions; inference on a
     // zero-sized frame finds nothing.
     if (!video.videoWidth || !video.videoHeight) return
+    recordVideo(video)
 
     inFlightRef.current = true
+    const startedAt = performance.now()
     try {
       const faces = await detectorRef.current.estimateFaces(video)
+      recordDetection('face', { ms: performance.now() - startedAt, count: faces.length })
+      if (tfRef.current) recordTensors(tfRef.current.memory().numTensors)
 
       if (faces.length === 0) {
         setFaceDetected(false)
@@ -123,6 +131,7 @@ export default function useFaceDetection(videoRef, enabled = false) {
       }
     } catch (err) {
       console.error('Face detection error:', err)
+      recordDetection('face', { error: err && err.message })
     } finally {
       inFlightRef.current = false
     }

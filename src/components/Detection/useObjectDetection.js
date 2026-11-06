@@ -1,4 +1,5 @@
 import { useState, useEffect, useRef, useCallback } from 'react'
+import { recordDetection } from '../../utils/detectStats'
 
 const PHONE_CONFIDENCE_THRESHOLD = 0.1
 const PHONE_CLASSES = ['cell phone', 'remote', 'book']
@@ -59,8 +60,10 @@ export default function useObjectDetection(videoRef, enabled = false) {
     if (!video.videoWidth || !video.videoHeight) return
 
     inFlightRef.current = true
+    const startedAt = performance.now()
     try {
       const predictions = await modelRef.current.detect(video)
+      recordDetection('object', { ms: performance.now() - startedAt, count: predictions.length })
 
       // Check for cell phone detection (includes 'remote' since COCO-SSD often
       // misclassifies phone backs/cases as remotes due to similar shape)
@@ -71,6 +74,7 @@ export default function useObjectDetection(videoRef, enabled = false) {
       setPhoneDetected(!!phoneDetection)
     } catch (err) {
       console.error('Object detection error:', err)
+      recordDetection('object', { error: err && err.message })
     } finally {
       inFlightRef.current = false
     }

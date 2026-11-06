@@ -2,6 +2,7 @@ import { useRef, useEffect, useCallback, useState } from 'react'
 import TimerDisplay from './TimerDisplay'
 import TimerControls from './TimerControls'
 import CameraFeed from '../Camera/CameraFeed'
+import DebugPanel from '../Detection/DebugPanel'
 import useFocusState from '../Detection/useFocusState'
 import useTimer from '../../hooks/useTimer'
 import useSession from '../../hooks/useSession'
@@ -205,6 +206,8 @@ export default function Timer() {
             onReady={handleCameraReady}
             className="w-full"
           />
+
+          <DebugPanel />
 
           {/* Quick stats */}
           {currentSession && (
