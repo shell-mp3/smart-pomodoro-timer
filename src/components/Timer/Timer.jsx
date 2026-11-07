@@ -3,7 +3,7 @@ import TimerDisplay from './TimerDisplay'
 import TimerControls from './TimerControls'
 import CameraFeed from '../Camera/CameraFeed'
 import DebugPanel from '../Detection/DebugPanel'
-import BreakFact from '../UI/BreakFact'
+import PomodoroFact from '../UI/PomodoroFact'
 import useFocusState from '../Detection/useFocusState'
 import useTimer from '../../hooks/useTimer'
 import useSession from '../../hooks/useSession'
@@ -198,7 +198,7 @@ export default function Timer() {
           onSkip={handleSkip}
         />
 
-        <BreakFact phase={phase} />
+        <PomodoroFact />
       </div>
 
       {/* Camera Section */}

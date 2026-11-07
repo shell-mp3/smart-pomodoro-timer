@@ -1,6 +1,5 @@
-import { useEffect, useState, useRef } from 'react'
+import { useEffect, useState } from 'react'
 import Tomato from './Tomato'
-import { randomFact } from '../../utils/pomodoroFacts'
 
 /**
  * Boot splash. Stays mounted through its own fade-out so the exit animation
@@ -8,9 +7,6 @@ import { randomFact } from '../../utils/pomodoroFacts'
  */
 export default function SplashScreen({ show }) {
   const [mounted, setMounted] = useState(show)
-  // Chosen once per mount - a fact that changed mid-fade would look like a glitch
-  const factRef = useRef(randomFact())
-
   useEffect(() => {
     if (show) {
       setMounted(true)
@@ -35,10 +31,6 @@ export default function SplashScreen({ show }) {
       </div>
 
       <p className="mt-8 text-[22px] font-semibold tracking-tight text-white">FocusFlow</p>
-
-      <p className="mt-6 max-w-sm text-center text-[14px] leading-relaxed text-dark-300">
-        {factRef.current}
-      </p>
 
       <span className="sr-only">Loading FocusFlow</span>
     </div>
