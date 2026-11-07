@@ -1,6 +1,5 @@
 import { useEffect, useState } from 'react'
 import { Routes, Route, Link, useLocation } from 'react-router-dom'
-import { NotificationProvider } from './components/UI/Notification'
 import AuthGuard from './components/Auth/AuthGuard'
 import UserMenu from './components/Auth/UserMenu'
 import SplashScreen from './components/UI/SplashScreen'
@@ -111,7 +110,7 @@ export default function App() {
   const booting = authLoading || !minTimePassed
 
   return (
-    <NotificationProvider>
+    <>
       <SplashScreen show={booting} />
       <div className="min-h-screen bg-dark-900">
         <Navigation />
@@ -132,6 +131,6 @@ export default function App() {
           </Routes>
         </main>
       </div>
-    </NotificationProvider>
+    </>
   )
 }

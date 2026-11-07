@@ -5,156 +5,51 @@ import CameraFeed from '../Camera/CameraFeed'
 import DebugPanel from '../Detection/DebugPanel'
 import PomodoroFact from '../UI/PomodoroFact'
 import useFocusState from '../Detection/useFocusState'
-import useTimer from '../../hooks/useTimer'
-import useSession from '../../hooks/useSession'
-import useSettings from '../../hooks/useSettings'
 import { useFocusContext } from '../../context/FocusContext'
-import { useNotification } from '../UI/Notification'
+import { useTimerContext } from '../../context/TimerContext'
 
+/**
+ * The timer page. The countdown and session record live in TimerContext,
+ * above the router, so they survive navigation. What stays here is the view
+ * and the camera, which should stop when you leave the page.
+ */
 export default function Timer() {
   const cameraRef = useRef(null)
   const videoRef = useRef(null)
-  const lastDistractionRef = useRef(null)
-  const distractionWarningShownRef = useRef(false)
 
-  const { settings } = useSettings()
-  const { enableDetection, disableDetection, isFocused: contextFocused, cameraEnabled, detectionEnabled, modelsLoaded } = useFocusContext()
-  const { notify } = useNotification()
-
-  const [showCamera, setShowCamera] = useState(true)
-  const [videoReady, setVideoReady] = useState(false)
-
-  const {
-    currentSession,
-    startSession,
-    endSession,
-    recordFocusedSecond,
-    recordDistraction
-  } = useSession()
-
-  // Initialize focus detection when video is ready
-  const handleCameraReady = useCallback((ref) => {
-    if (ref && ref.current) {
-      videoRef.current = ref.current
-      setVideoReady(true)
-      // Auto-enable detection when camera is ready
-      enableDetection()
-    }
-  }, [enableDetection])
-
-  // Use focus state detection - enable when video is ready
-  const { isFocused, distractionReason, cleanup: cleanupDetection } = useFocusState(
-    videoRef,
-    videoReady && cameraEnabled && detectionEnabled
-  )
-
-  // Effective focus state (assume focused if camera not enabled or models still loading)
-  const effectiveFocused = !cameraEnabled || !modelsLoaded || isFocused
-
-  const handlePhaseComplete = useCallback((fromPhase, toPhase) => {
-    if (fromPhase === 'work') {
-      // End the work session
-      endSession(true).then(() => {
-        if (settings.sound_enabled) {
-          playNotificationSound()
-        }
-        notify({
-          type: 'success',
-          message: 'Work session completed!'
-        })
-      })
-
-      // Notify about break
-      const breakType = toPhase === 'longBreak' ? 'long break' : 'short break'
-      notify({
-        type: 'info',
-        message: `Time for a ${breakType}!`
-      })
-    } else {
-      // Break ended
-      if (settings.sound_enabled) {
-        playNotificationSound()
-      }
-      notify({
-        type: 'info',
-        message: 'Break ended! Ready to focus?'
-      })
-    }
-  }, [endSession, settings.sound_enabled, notify])
-
-  const handleTick = useCallback((timeLeft, phase, focused) => {
-    if (phase === 'work' && focused) {
-      recordFocusedSecond()
-    }
-  }, [recordFocusedSecond])
-
+  const { enableDetection, disableDetection, cameraEnabled, detectionEnabled } = useFocusContext()
   const {
     timeLeft,
     phase,
     isRunning,
     sessionCount,
-    start: startTimer,
-    pause: pauseTimer,
-    reset: resetTimer,
-    skip: skipPhase
-  } = useTimer({
-    isFocused: effectiveFocused,
-    workDuration: settings.work_duration,
-    shortBreak: settings.short_break,
-    longBreak: settings.long_break,
-    onPhaseComplete: handlePhaseComplete,
-    onTick: handleTick
-  })
+    effectiveFocused,
+    currentSession,
+    totalTime,
+    start,
+    pause,
+    reset,
+    skip
+  } = useTimerContext()
 
-  // Track distractions - only when models are loaded
-  useEffect(() => {
-    if (!isRunning || phase !== 'work' || !modelsLoaded) return
+  const [showCamera, setShowCamera] = useState(true)
+  const [videoReady, setVideoReady] = useState(false)
 
-    if (!effectiveFocused && distractionReason) {
-      if (lastDistractionRef.current !== distractionReason) {
-        recordDistraction(distractionReason)
-        lastDistractionRef.current = distractionReason
-      }
-      if (!distractionWarningShownRef.current) {
-        distractionWarningShownRef.current = true
-        notify({ type: 'warning', message: 'Focus lost - timer paused' })
-      }
-    } else if (effectiveFocused) {
-      lastDistractionRef.current = null
-      distractionWarningShownRef.current = false
+  const handleCameraReady = useCallback((ref) => {
+    if (ref && ref.current) {
+      videoRef.current = ref.current
+      setVideoReady(true)
+      enableDetection()
     }
-  }, [effectiveFocused, distractionReason, isRunning, phase, modelsLoaded, recordDistraction, notify])
+  }, [enableDetection])
 
-  const handleStart = useCallback(() => {
-    if (phase === 'work' && !currentSession) {
-      startSession(settings.work_duration * 60)
-    }
-    enableDetection()
-    startTimer()
-  }, [phase, currentSession, settings.work_duration, startSession, enableDetection, startTimer])
+  const { cleanup: cleanupDetection } = useFocusState(
+    videoRef,
+    videoReady && cameraEnabled && detectionEnabled
+  )
 
-  const handlePause = useCallback(() => {
-    pauseTimer()
-    // Don't disable detection, just pause the timer
-  }, [pauseTimer])
-
-  const handleReset = useCallback(() => {
-    if (currentSession) {
-      endSession(false) // Mark as incomplete
-    }
-    disableDetection()
-    cleanupDetection()
-    resetTimer()
-  }, [currentSession, endSession, disableDetection, cleanupDetection, resetTimer])
-
-  const handleSkip = useCallback(() => {
-    if (phase === 'work' && currentSession) {
-      endSession(false) // Mark as incomplete when skipping
-    }
-    skipPhase()
-  }, [phase, currentSession, endSession, skipPhase])
-
-  // Cleanup on unmount
+  // Detection stops with the page; the countdown does not. Leaving the timer
+  // page simply means nothing is watching, so the clock keeps running.
   useEffect(() => {
     return () => {
       disableDetection()
@@ -162,27 +57,13 @@ export default function Timer() {
     }
   }, [disableDetection, cleanupDetection])
 
-  // Calculate total time for progress
-  const getTotalTime = () => {
-    switch (phase) {
-      case 'work':
-        return settings.work_duration * 60
-      case 'shortBreak':
-        return settings.short_break * 60
-      case 'longBreak':
-        return settings.long_break * 60
-      default:
-        return settings.work_duration * 60
-    }
-  }
-
   return (
     <div className="flex flex-col lg:flex-row items-center lg:items-start justify-center gap-8 p-6">
       {/* Timer Section */}
       <div className="flex flex-col items-center gap-8">
         <TimerDisplay
           timeLeft={timeLeft}
-          totalTime={getTotalTime()}
+          totalTime={totalTime}
           phase={phase}
           isRunning={isRunning}
           isFocused={effectiveFocused}
@@ -192,10 +73,10 @@ export default function Timer() {
         <TimerControls
           isRunning={isRunning}
           phase={phase}
-          onStart={handleStart}
-          onPause={handlePause}
-          onReset={handleReset}
-          onSkip={handleSkip}
+          onStart={start}
+          onPause={pause}
+          onReset={reset}
+          onSkip={skip}
         />
       </div>
 
@@ -211,25 +92,24 @@ export default function Timer() {
 
             <DebugPanel />
 
-            {/* Quick stats */}
             {currentSession && (
-            <div className="mt-4 bg-dark-800 rounded-lg p-4">
-              <h4 className="text-sm font-medium text-dark-400 mb-2">Current Session</h4>
-              <div className="grid grid-cols-2 gap-4 text-center">
-                <div>
-                  <p className="text-2xl font-bold text-accent-green">
-                    {Math.floor((Date.now() - new Date(currentSession.started_at).getTime()) / 60000)}m
-                  </p>
-                  <p className="text-xs text-dark-400">Elapsed</p>
-                </div>
-                <div>
-                  <p className="text-2xl font-bold text-accent-blue">
-                    {phase === 'work' ? sessionCount + 1 : sessionCount}
-                  </p>
-                  <p className="text-xs text-dark-400">Sessions</p>
+              <div className="mt-4 bg-dark-800 rounded-2xl p-4 border border-dark-600/60">
+                <h4 className="text-[13px] font-medium text-dark-400 mb-2">Current Session</h4>
+                <div className="grid grid-cols-2 gap-4 text-center">
+                  <div>
+                    <p className="text-2xl font-semibold text-accent-green tabular">
+                      {Math.floor((Date.now() - new Date(currentSession.started_at).getTime()) / 60000)}m
+                    </p>
+                    <p className="text-xs text-dark-400">Elapsed</p>
+                  </div>
+                  <div>
+                    <p className="text-2xl font-semibold text-dark-200 tabular">
+                      {phase === 'work' ? sessionCount + 1 : sessionCount}
+                    </p>
+                    <p className="text-xs text-dark-400">Sessions</p>
+                  </div>
                 </div>
               </div>
-            </div>
             )}
           </>
         )}
@@ -242,7 +122,7 @@ export default function Timer() {
       {/* Toggle camera button */}
       <button
         onClick={() => setShowCamera(!showCamera)}
-        className="fixed bottom-4 right-4 p-3 bg-dark-700 hover:bg-dark-600 rounded-full shadow-lg lg:hidden"
+        className="fixed bottom-4 right-4 p-3 bg-dark-700 hover:bg-dark-600 rounded-full shadow-ios lg:hidden"
         title={showCamera ? 'Hide camera' : 'Show camera'}
       >
         <svg className="w-5 h-5 text-dark-300" fill="none" viewBox="0 0 24 24" stroke="currentColor">
@@ -251,27 +131,4 @@ export default function Timer() {
       </button>
     </div>
   )
-}
-
-function playNotificationSound() {
-  // Create a simple beep sound using Web Audio API
-  try {
-    const audioContext = new (window.AudioContext || window.webkitAudioContext)()
-    const oscillator = audioContext.createOscillator()
-    const gainNode = audioContext.createGain()
-
-    oscillator.connect(gainNode)
-    gainNode.connect(audioContext.destination)
-
-    oscillator.frequency.value = 800
-    oscillator.type = 'sine'
-    gainNode.gain.value = 0.3
-
-    oscillator.start()
-
-    gainNode.gain.exponentialRampToValueAtTime(0.01, audioContext.currentTime + 0.3)
-    oscillator.stop(audioContext.currentTime + 0.3)
-  } catch (err) {
-    console.error('Failed to play notification sound:', err)
-  }
 }

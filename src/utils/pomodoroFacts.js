@@ -12,11 +12,9 @@ export const POMODORO_FACTS = [
   'One pomodoro is indivisible. Half a pomodoro does not exist — if it breaks, it never counted.',
   'The classic rhythm: 25 minutes of work, a 5 to 10 minute break, and a 20 to 30 minute break after every fourth one.',
   'Interruptions get the "inform, negotiate, schedule, call back" treatment: write it down, agree a time, return to work.',
-  'The ticking is the point. Cirillo found the sound externalised the anxious urge to just finish already.',
   'Winding a physical timer is a small act of commitment — it is the moment you decide the next 25 minutes are spoken for.',
   'A study comparing fixed Pomodoro breaks with self-chosen ones found the self-directed group worked longer stretches and reported more fatigue, less concentration and less motivation.',
   'A 2025 scoping review found time-structured intervals improved focus and reduced mental fatigue versus self-paced breaks.',
-  'Recording finished pomodori is half the method — the technique is as much about seeing where your time went as protecting it.',
 ]
 
 export function randomFact(exclude) {
