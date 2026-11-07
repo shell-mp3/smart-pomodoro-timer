@@ -7,29 +7,20 @@ const features = [
     icon: TimerIcon,
     color: 'text-accent-green',
     title: 'Pomodoro, your way',
-    description:
-      'Focused sprints with short breaks between them, and a long break every fourth session. Every duration is adjustable.'
+    description: '25 minutes of work, then a break. Every duration is adjustable.'
   },
   {
     icon: EyeIcon,
     color: 'text-accent-red',
     title: 'It notices when you drift',
-    description:
-      'Your webcam watches for the usual suspects — looking away, eyes shut, head turned — and pauses until you are back.'
+    description: 'Look away, shut your eyes, turn your head — the timer pauses until you are back.'
   },
   {
     icon: ChartIcon,
     color: 'text-dark-200',
     title: 'See where the time went',
-    description:
-      'Focused minutes, streaks, and what distracted you most — with the full history one click from a CSV.'
+    description: 'Focused minutes, streaks, and what distracted you most.'
   }
-]
-
-const defaults = [
-  { value: '25', unit: 'min work' },
-  { value: '5', unit: 'min break' },
-  { value: '4', unit: 'to long break' }
 ]
 
 export default function Welcome() {
@@ -45,38 +36,21 @@ export default function Welcome() {
       <div className="max-w-3xl w-full">
         {/* Hero */}
         <div className="text-center">
-          <Tomato className="w-14 h-14 mx-auto mb-7 drop-shadow-[0_8px_24px_rgba(255,69,58,0.3)]" />
-
-          <p className="text-[11px] font-semibold uppercase tracking-[0.18em] text-accent-green mb-4">
-            Focus, measured
-          </p>
+          <Tomato className="w-14 h-14 mx-auto mb-6 drop-shadow-[0_8px_24px_rgba(255,69,58,0.3)]" />
 
           <h1 className="text-4xl sm:text-[2.75rem] font-semibold tracking-tight leading-[1.1] mb-4">
             Welcome to{' '}
-            <span className="text-gradient">
-              Pomodoro Timer
-            </span>
+            <span className="text-gradient">Pomodoro Timer</span>
           </h1>
 
-          <p className="text-[15px] leading-relaxed text-dark-200 max-w-md mx-auto">
-            A Pomodoro timer that knows whether you are actually focusing. It watches
-            through your webcam, pauses when your attention wanders, and shows you the
-            damage afterwards.
+          <p className="text-[15px] leading-relaxed text-dark-200 max-w-sm mx-auto">
+            A timer that knows whether you are actually focusing. It watches through
+            your webcam and pauses when your attention wanders.
           </p>
-
-          {/* Defaults at a glance */}
-          <div className="mt-7 inline-flex items-stretch divide-x divide-dark-600 rounded-lg border border-dark-600 bg-dark-800">
-            {defaults.map(({ value, unit }) => (
-              <div key={unit} className="px-5 py-2.5">
-                <div className="text-lg font-semibold tabular-nums leading-none text-white">{value}</div>
-                <div className="mt-1 text-[11px] uppercase tracking-wider text-dark-300">{unit}</div>
-              </div>
-            ))}
-          </div>
         </div>
 
         {/* Features */}
-        <div className="mt-12 grid gap-px sm:grid-cols-3 rounded-xl overflow-hidden bg-dark-600 border border-dark-600">
+        <div className="mt-10 grid gap-px sm:grid-cols-3 rounded-xl overflow-hidden bg-dark-600 border border-dark-600">
           {features.map(({ icon: Icon, color, title, description }) => (
             <div
               key={title}
@@ -97,13 +71,11 @@ export default function Welcome() {
           <p className="text-[13px] leading-relaxed text-dark-300">
             <span className="text-white font-medium">Your camera stays yours.</span>{' '}
             Detection runs entirely in this browser — no video is uploaded or stored.
-            Prefer not to use it? Deny camera access and the timer still works, just
-            without focus tracking.
           </p>
         </div>
 
         {/* CTA */}
-        <div className="mt-10 text-center">
+        <div className="mt-8 text-center">
           <button
             onClick={handleStart}
             className="btn-primary inline-flex items-center gap-2 px-6 py-2.5 text-sm shadow-glow-green"
@@ -111,10 +83,6 @@ export default function Welcome() {
             Start focusing
             <ArrowIcon className="w-4 h-4" />
           </button>
-          <p className="mt-4 text-xs text-dark-400">
-            Back any time at{' '}
-            <span className="font-mono text-dark-200">/welcome</span>
-          </p>
         </div>
       </div>
     </div>
