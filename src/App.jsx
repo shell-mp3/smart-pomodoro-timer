@@ -28,7 +28,7 @@ function Navigation() {
           {/* Logo */}
           <Link to="/" className="flex items-center gap-2.5 group">
             <Tomato className="w-7 h-7 transition-transform duration-300 ease-ios group-hover:scale-110" />
-            <span className="font-semibold text-[17px] tracking-tight hidden sm:block">FocusFlow</span>
+            <span className="font-semibold text-[17px] tracking-tight hidden sm:block">Pomodoro Timer</span>
           </Link>
 
           {/* Nav Items */}

@@ -8,7 +8,7 @@ export default function Settings() {
     <div className="max-w-4xl mx-auto px-4 py-8">
       <div className="mb-8">
         <h1 className="text-2xl font-bold">Settings</h1>
-        <p className="text-dark-400 mt-1">Customize your FocusFlow experience</p>
+        <p className="text-dark-400 mt-1">Customize your Pomodoro Timer experience</p>
       </div>
 
       <SettingsComponent />

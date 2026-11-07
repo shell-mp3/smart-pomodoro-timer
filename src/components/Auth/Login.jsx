@@ -41,7 +41,7 @@ export default function Login({ onToggleMode, onSuccess }) {
         <div className="bg-dark-800 rounded-lg p-6 border border-dark-600">
           <h3 className="text-lg font-semibold mb-2">Offline Mode</h3>
           <p className="text-dark-400 text-sm">
-            Supabase is not configured. You can still use FocusFlow,
+            Supabase is not configured. You can still use Pomodoro Timer,
             but your data will only be saved locally.
           </p>
         </div>

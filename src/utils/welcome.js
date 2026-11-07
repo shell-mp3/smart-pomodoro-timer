@@ -1,3 +1,5 @@
+// Keeps the old name on purpose: renaming the key would orphan data
+// already saved in people's browsers.
 const LOCAL_STORAGE_KEY = 'focusflow_welcome_seen'
 
 export function hasSeenWelcome() {

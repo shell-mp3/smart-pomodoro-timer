@@ -54,7 +54,7 @@ export default function Welcome() {
           <h1 className="text-4xl sm:text-[2.75rem] font-semibold tracking-tight leading-[1.1] mb-4">
             Welcome to{' '}
             <span className="text-gradient">
-              FocusFlow
+              Pomodoro Timer
             </span>
           </h1>
 

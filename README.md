@@ -1,4 +1,4 @@
-# FocusFlow
+# Pomodoro Timer
 
 AI-powered Pomodoro timer with real-time focus tracking using your webcam.
 
@@ -49,7 +49,7 @@ AI-powered Pomodoro timer with real-time focus tracking using your webcam.
 1. Clone the repository:
 ```bash
 git clone <repository-url>
-cd focusflow
+cd pomodoro-timer
 ```
 
 2. Install dependencies:
@@ -96,7 +96,7 @@ npm run preview
 
 ### Offline Mode
 
-FocusFlow works without Supabase configuration:
+Pomodoro Timer works without Supabase configuration:
 - Settings are saved in localStorage
 - Session data is stored locally
 - All features work except cloud sync
@@ -129,7 +129,7 @@ All settings are accessible from the Settings page:
 ## Project Structure
 
 ```
-focusflow/
+pomodoro-timer/
 ├── public/
 │   └── favicon.ico
 ├── src/

@@ -30,9 +30,9 @@ export default function SplashScreen({ show }) {
         <Tomato className="w-24 h-24 drop-shadow-[0_10px_30px_rgba(255,69,58,0.35)]" spinning />
       </div>
 
-      <p className="mt-8 text-[22px] font-semibold tracking-tight text-white">FocusFlow</p>
+      <p className="mt-8 text-[22px] font-semibold tracking-tight text-white">Pomodoro Timer</p>
 
-      <span className="sr-only">Loading FocusFlow</span>
+      <span className="sr-only">Loading Pomodoro Timer</span>
     </div>
   )
 }

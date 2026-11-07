@@ -51,7 +51,7 @@ function BrowserNotificationButton() {
 
     const result = await Notification.requestPermission()
     if (result === 'granted') {
-      new Notification('FocusFlow', {
+      new Notification('Pomodoro Timer', {
         body: 'Notifications enabled!',
         icon: '/favicon.ico'
       })

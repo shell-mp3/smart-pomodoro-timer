@@ -27,7 +27,7 @@ export default function Auth() {
       <div className="w-full max-w-md">
         {/* Logo */}
         <div className="text-center mb-8">
-          <h1 className="text-3xl font-bold text-gradient">FocusFlow</h1>
+          <h1 className="text-3xl font-bold text-gradient">Pomodoro Timer</h1>
           <p className="text-dark-400 mt-2">
             AI-powered focus tracking for better productivity
           </p>

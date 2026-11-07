@@ -71,7 +71,7 @@ function escapeCSVField(field) {
  * @param {string} csvContent - CSV string content
  * @param {string} filename - Name for downloaded file
  */
-export function downloadCSV(csvContent, filename = 'focusflow-export.csv') {
+export function downloadCSV(csvContent, filename = 'pomodoro-timer-export.csv') {
   const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' })
   const url = URL.createObjectURL(blob)
 
@@ -93,5 +93,5 @@ export function downloadCSV(csvContent, filename = 'focusflow-export.csv') {
  */
 export function generateExportFilename() {
   const date = new Date().toISOString().split('T')[0]
-  return `focusflow-sessions-${date}.csv`
+  return `pomodoro-timer-sessions-${date}.csv`
 }
