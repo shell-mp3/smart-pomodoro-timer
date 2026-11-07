@@ -1,17 +1,4 @@
-import { playTick } from '../../utils/tickSound'
-
-export default function NotificationSettings({
-  soundEnabled,
-  onSoundEnabledChange,
-  tickingEnabled,
-  onTickingEnabledChange
-}) {
-  const handleTickingChange = (next) => {
-    onTickingEnabledChange(next)
-    // Preview on enable. Doubles as the user gesture that unlocks audio.
-    if (next) playTick()
-  }
-
+export default function NotificationSettings({ soundEnabled, onSoundEnabledChange }) {
   return (
     <section className="card">
       <h2 className="text-xl font-semibold mb-6">Notifications</h2>
@@ -35,35 +22,6 @@ export default function NotificationSettings({
               className={`
                 inline-block h-4 w-4 transform rounded-full bg-white transition-transform duration-200
                 ${soundEnabled ? 'translate-x-6' : 'translate-x-1'}
-              `}
-            />
-          </button>
-        </div>
-
-        {/* Ticking */}
-        <div className="flex items-center justify-between">
-          <div className="pr-4">
-            <p className="font-medium">Ticking Sound</p>
-            <p className="text-sm text-dark-400">
-              A kitchen-timer tick each second while you work. Cirillo found the sound
-              externalised the urge to just finish already.
-            </p>
-          </div>
-          <button
-            onClick={() => handleTickingChange(!tickingEnabled)}
-            role="switch"
-            aria-checked={tickingEnabled}
-            aria-label="Ticking sound"
-            className={`
-              relative inline-flex h-6 w-11 shrink-0 items-center rounded-full
-              transition-colors duration-200
-              ${tickingEnabled ? 'bg-accent-green' : 'bg-dark-600'}
-            `}
-          >
-            <span
-              className={`
-                inline-block h-4 w-4 transform rounded-full bg-white transition-transform duration-200
-                ${tickingEnabled ? 'translate-x-6' : 'translate-x-1'}
               `}
             />
           </button>

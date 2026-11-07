@@ -10,7 +10,6 @@ import useSession from '../../hooks/useSession'
 import useSettings from '../../hooks/useSettings'
 import { useFocusContext } from '../../context/FocusContext'
 import { useNotification } from '../UI/Notification'
-import { playTick } from '../../utils/tickSound'
 
 export default function Timer() {
   const cameraRef = useRef(null)
@@ -86,11 +85,8 @@ export default function Timer() {
   const handleTick = useCallback((timeLeft, phase, focused) => {
     if (phase === 'work' && focused) {
       recordFocusedSecond()
-      // The tick only runs while the work is actually counting, so it stops
-      // the moment focus breaks - the silence is itself a signal.
-      if (settings.ticking_enabled) playTick()
     }
-  }, [recordFocusedSecond, settings.ticking_enabled])
+  }, [recordFocusedSecond])
 
   const {
     timeLeft,

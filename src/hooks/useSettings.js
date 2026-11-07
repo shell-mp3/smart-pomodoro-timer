@@ -9,8 +9,7 @@ const DEFAULT_SETTINGS = {
   short_break: 5,
   long_break: 15,
   sensitivity_level: 'medium',
-  sound_enabled: true,
-  ticking_enabled: false
+  sound_enabled: true
 }
 
 export default function useSettings() {
@@ -85,7 +84,6 @@ export default function useSettings() {
             long_break: updated.long_break,
             sensitivity_level: updated.sensitivity_level,
             sound_enabled: updated.sound_enabled,
-            ticking_enabled: updated.ticking_enabled,
             updated_at: new Date().toISOString()
           })
           .eq('user_id', user.id)
