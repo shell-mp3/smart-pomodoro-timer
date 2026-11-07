@@ -1,85 +1,112 @@
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap');
+
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
 
 @layer base {
   html {
-    @apply bg-dark-900 text-white antialiased;
+    @apply bg-dark-900 text-dark-50 antialiased;
+    -webkit-font-smoothing: antialiased;
+    font-feature-settings: 'cv11', 'ss01';
   }
 
   body {
-    @apply min-h-screen;
+    @apply min-h-screen font-sans;
   }
 
-  ::-webkit-scrollbar {
-    width: 8px;
-    height: 8px;
-  }
-
-  ::-webkit-scrollbar-track {
-    @apply bg-dark-800;
-  }
-
+  /* iOS hides scrollbars until you scroll; this is the closest web analogue */
+  ::-webkit-scrollbar { width: 10px; height: 10px; }
+  ::-webkit-scrollbar-track { background: transparent; }
   ::-webkit-scrollbar-thumb {
-    @apply bg-dark-600 rounded-full;
+    @apply rounded-full;
+    background: rgba(142, 142, 147, 0.35);
+    border: 3px solid transparent;
+    background-clip: content-box;
   }
+  ::-webkit-scrollbar-thumb:hover { background: rgba(142, 142, 147, 0.6); background-clip: content-box; }
 
-  ::-webkit-scrollbar-thumb:hover {
-    @apply bg-dark-500;
-  }
+  /* Numbers that don't jitter as a timer counts down */
+  .tabular { font-variant-numeric: tabular-nums; }
 }
 
 @layer components {
   .btn {
-    @apply px-4 py-2 rounded-lg font-medium transition-all duration-200
-           focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-offset-dark-900
-           disabled:opacity-50 disabled:cursor-not-allowed;
+    @apply inline-flex items-center justify-center gap-2 px-5 py-2.5 rounded-full
+           font-semibold text-[15px] tracking-tight
+           transition-all duration-200 ease-ios
+           active:scale-[0.97]
+           focus:outline-none focus-visible:ring-2 focus-visible:ring-offset-2 focus-visible:ring-offset-dark-900
+           disabled:opacity-40 disabled:cursor-not-allowed disabled:active:scale-100;
   }
 
   .btn-primary {
-    @apply btn bg-accent-green hover:bg-emerald-600 text-white focus:ring-accent-green;
+    @apply btn text-white focus-visible:ring-accent-green;
+    background: linear-gradient(180deg, #3BE06A 0%, #28B84C 100%);
+    box-shadow: 0 1px 2px rgba(0,0,0,0.3), 0 6px 18px rgba(48,209,88,0.22);
   }
+  .btn-primary:hover:not(:disabled) { filter: brightness(1.06); }
 
   .btn-secondary {
-    @apply btn bg-dark-700 hover:bg-dark-600 text-white focus:ring-dark-500;
+    @apply btn bg-dark-700 hover:bg-dark-600 text-dark-50 focus-visible:ring-dark-500;
   }
 
   .btn-danger {
-    @apply btn bg-accent-red hover:bg-red-600 text-white focus:ring-accent-red;
+    @apply btn text-white focus-visible:ring-accent-red;
+    background: linear-gradient(180deg, #FF5D52 0%, #E6362B 100%);
+    box-shadow: 0 1px 2px rgba(0,0,0,0.3), 0 6px 18px rgba(255,69,58,0.22);
   }
 
   .input {
-    @apply w-full px-4 py-2 bg-dark-800 border border-dark-600 rounded-lg
-           text-white placeholder-dark-400
+    @apply w-full px-4 py-3 bg-dark-800 border border-dark-600 rounded-xl
+           text-[15px] text-dark-50 placeholder-dark-400
            focus:outline-none focus:ring-2 focus:ring-accent-green focus:border-transparent
-           transition-all duration-200;
+           transition-all duration-200 ease-ios;
   }
 
+  /* Content layer: opaque, per Apple's two-layer model */
   .card {
-    @apply bg-dark-800 rounded-xl p-6 border border-dark-700;
+    @apply bg-dark-800 rounded-2xl p-5 border border-dark-600/60 shadow-ios;
+  }
+
+  /* Functional layer: translucent glass for chrome that floats over content */
+  .glass {
+    background: rgba(28, 28, 30, 0.72);
+    backdrop-filter: blur(20px) saturate(180%);
+    -webkit-backdrop-filter: blur(20px) saturate(180%);
+  }
+
+  /* iOS grouped list: one rounded block, hairline separators between rows */
+  .ios-group {
+    @apply bg-dark-800 rounded-2xl border border-dark-600/60 overflow-hidden divide-y divide-dark-600/60;
+  }
+  .ios-row {
+    @apply flex items-center justify-between gap-4 px-4 py-3.5 text-[15px];
   }
 
   .label {
-    @apply block text-sm font-medium text-dark-300 mb-2;
+    @apply block text-[13px] font-medium text-dark-300 mb-2;
+  }
+
+  /* Uppercase section caption above a grouped list */
+  .ios-section-title {
+    @apply px-4 pb-2 text-[13px] font-medium uppercase tracking-wider text-dark-400;
   }
 }
 
 @layer utilities {
   .text-gradient {
-    @apply bg-clip-text text-transparent bg-gradient-to-r from-accent-green to-accent-blue;
+    @apply bg-clip-text text-transparent;
+    background-image: linear-gradient(135deg, #FF8A6B 0%, #FF5B4A 55%, #E6322A 100%);
   }
 
   .animate-focus-ring {
-    animation: focus-pulse 2s ease-in-out infinite;
+    animation: focus-pulse 2.4s ease-in-out infinite;
   }
 
   @keyframes focus-pulse {
-    0%, 100% {
-      box-shadow: 0 0 0 0 rgba(16, 185, 129, 0.4);
-    }
-    50% {
-      box-shadow: 0 0 0 8px rgba(16, 185, 129, 0);
-    }
+    0%, 100% { box-shadow: 0 0 0 0 rgba(48, 209, 88, 0.35); }
+    50%      { box-shadow: 0 0 0 10px rgba(48, 209, 88, 0); }
   }
 
   .timer-ring {
@@ -90,30 +117,18 @@
 
 /* Animation keyframes */
 @keyframes slideIn {
-  from {
-    transform: translateX(100%);
-    opacity: 0;
-  }
-  to {
-    transform: translateX(0);
-    opacity: 1;
-  }
+  from { transform: translateX(100%); opacity: 0; }
+  to   { transform: translateX(0); opacity: 1; }
 }
 
 @keyframes fadeIn {
   from { opacity: 0; }
-  to { opacity: 1; }
+  to   { opacity: 1; }
 }
 
 @keyframes scaleIn {
-  from {
-    transform: scale(0.95);
-    opacity: 0;
-  }
-  to {
-    transform: scale(1);
-    opacity: 1;
-  }
+  from { transform: scale(0.95); opacity: 0; }
+  to   { transform: scale(1); opacity: 1; }
 }
 
 /* Boot splash: the tomato the Pomodoro technique is named after */

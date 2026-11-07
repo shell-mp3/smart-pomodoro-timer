@@ -4,6 +4,7 @@ import { NotificationProvider } from './components/UI/Notification'
 import AuthGuard from './components/Auth/AuthGuard'
 import UserMenu from './components/Auth/UserMenu'
 import SplashScreen from './components/UI/SplashScreen'
+import Tomato from './components/UI/Tomato'
 import Home from './pages/Home'
 import Welcome from './pages/Welcome'
 import Dashboard from './pages/Dashboard'
@@ -22,17 +23,13 @@ function Navigation() {
   ]
 
   return (
-    <header className="sticky top-0 z-40 bg-dark-900/80 backdrop-blur-sm border-b border-dark-700">
+    <header className="sticky top-0 z-40 glass border-b border-dark-600/60">
       <nav className="max-w-6xl mx-auto px-4">
         <div className="flex items-center justify-between h-16">
           {/* Logo */}
-          <Link to="/" className="flex items-center gap-2">
-            <div className="w-8 h-8 rounded-lg bg-gradient-to-br from-accent-green to-accent-blue flex items-center justify-center">
-              <svg className="w-5 h-5 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 10V3L4 14h7v7l9-11h-7z" />
-              </svg>
-            </div>
-            <span className="font-bold text-lg hidden sm:block">FocusFlow</span>
+          <Link to="/" className="flex items-center gap-2.5 group">
+            <Tomato className="w-7 h-7 transition-transform duration-300 ease-ios group-hover:scale-110" />
+            <span className="font-semibold text-[17px] tracking-tight hidden sm:block">FocusFlow</span>
           </Link>
 
           {/* Nav Items */}
@@ -42,15 +39,16 @@ function Navigation() {
                 key={path}
                 to={path}
                 className={`
-                  flex items-center gap-2 px-3 py-2 rounded-lg transition-colors
+                  flex items-center gap-2 px-3.5 py-2 rounded-full text-[14px] font-medium
+                  transition-all duration-200 ease-ios active:scale-[0.97]
                   ${location.pathname === path
-                    ? 'bg-dark-700 text-white'
-                    : 'text-dark-300 hover:text-white hover:bg-dark-800'
+                    ? 'bg-dark-700 text-white shadow-ios'
+                    : 'text-dark-300 hover:text-white hover:bg-dark-700/50'
                   }
                 `}
               >
                 <Icon className="w-5 h-5" />
-                <span className="hidden sm:block text-sm font-medium">{label}</span>
+                <span className="hidden sm:block">{label}</span>
               </Link>
             ))}
 
@@ -58,7 +56,7 @@ function Navigation() {
             {isConfigured && !user && (
               <Link
                 to="/auth"
-                className="ml-2 btn-primary text-sm py-1.5"
+                className="ml-2 btn-primary py-2 px-4 text-[14px]"
               >
                 Sign In
               </Link>

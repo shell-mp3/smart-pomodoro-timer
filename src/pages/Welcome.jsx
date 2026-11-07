@@ -1,24 +1,25 @@
 import { useNavigate } from 'react-router-dom'
 import { markWelcomeSeen } from '../utils/welcome'
+import Tomato from '../components/UI/Tomato'
 
 const features = [
   {
     icon: TimerIcon,
-    color: 'text-emerald-400',
+    color: 'text-accent-green',
     title: 'Pomodoro, your way',
     description:
       'Focused sprints with short breaks between them, and a long break every fourth session. Every duration is adjustable.'
   },
   {
     icon: EyeIcon,
-    color: 'text-sky-400',
+    color: 'text-accent-red',
     title: 'It notices when you drift',
     description:
       'Your webcam watches for the usual suspects — looking away, eyes shut, head turned — and pauses until you are back.'
   },
   {
     icon: ChartIcon,
-    color: 'text-violet-400',
+    color: 'text-dark-200',
     title: 'See where the time went',
     description:
       'Focused minutes, streaks, and what distracted you most — with the full history one click from a CSV.'
@@ -44,19 +45,15 @@ export default function Welcome() {
       <div className="max-w-3xl w-full">
         {/* Hero */}
         <div className="text-center">
-          <div className="w-11 h-11 mx-auto mb-7 rounded-lg bg-gradient-to-br from-accent-green to-accent-blue ring-1 ring-white/10 flex items-center justify-center">
-            <svg className="w-6 h-6 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 10V3L4 14h7v7l9-11h-7z" />
-            </svg>
-          </div>
+          <Tomato className="w-14 h-14 mx-auto mb-7 drop-shadow-[0_8px_24px_rgba(255,69,58,0.3)]" />
 
-          <p className="text-[11px] font-semibold uppercase tracking-[0.18em] text-emerald-400 mb-4">
+          <p className="text-[11px] font-semibold uppercase tracking-[0.18em] text-accent-green mb-4">
             Focus, measured
           </p>
 
           <h1 className="text-4xl sm:text-[2.75rem] font-semibold tracking-tight leading-[1.1] mb-4">
             Welcome to{' '}
-            <span className="bg-clip-text text-transparent bg-gradient-to-r from-emerald-400 to-sky-400">
+            <span className="text-gradient">
               FocusFlow
             </span>
           </h1>
@@ -95,8 +92,8 @@ export default function Welcome() {
         </div>
 
         {/* Privacy note */}
-        <div className="mt-4 flex items-start gap-2.5 px-4 py-3 rounded-lg border border-emerald-500/30 bg-emerald-500/[0.07]">
-          <LockIcon className="w-4 h-4 text-emerald-400 shrink-0 mt-px" />
+        <div className="mt-4 flex items-start gap-2.5 px-4 py-3 rounded-lg border border-accent-green/25 bg-accent-green/[0.07]">
+          <LockIcon className="w-4 h-4 text-accent-green shrink-0 mt-px" />
           <p className="text-[13px] leading-relaxed text-dark-300">
             <span className="text-white font-medium">Your camera stays yours.</span>{' '}
             Detection runs entirely in this browser — no video is uploaded or stored.
