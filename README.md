@@ -4,11 +4,10 @@ AI-powered Pomodoro timer with real-time focus tracking using your webcam.
 
 ## Features
 
-- **Smart Focus Detection**: Uses TensorFlow.js to detect:
+- **Smart Focus Detection**: Uses MediaPipe Tasks Vision to detect:
   - Face visibility
   - Eye state (open/closed)
   - Head orientation
-  - Phone detection (COCO-SSD)
 
 - **Pomodoro Timer**: Classic Pomodoro technique with:
   - Configurable work sessions (5-60 minutes)
@@ -34,7 +33,7 @@ AI-powered Pomodoro timer with real-time focus tracking using your webcam.
 - Tailwind CSS
 - React Router v6
 - Recharts
-- TensorFlow.js
+- MediaPipe Tasks Vision
 - Supabase (Auth + Database)
 
 ## Getting Started
@@ -63,23 +62,9 @@ npm install
 cp .env.example .env
 ```
 
-4. (Optional) Configure Supabase:
-   - Create a new Supabase project at [supabase.com](https://supabase.com)
-   - Go to Settings > API and copy your URL and anon key
-   - Update `.env` with your credentials:
-```
-VITE_SUPABASE_URL=https://your-project.supabase.co
-VITE_SUPABASE_ANON_KEY=your-anon-key
-```
-
-5. (Optional) Run the database schema:
-   - Go to Supabase Dashboard > SQL Editor
-   - Copy and run the contents of `supabase/schema.sql`
-
-6. (Optional) Enable Google OAuth:
-   - Go to Supabase Dashboard > Authentication > Providers
-   - Enable Google provider
-   - Configure OAuth credentials from Google Cloud Console
+4. (Optional) Set up accounts and sync — see
+   [Accounts and Google sign-in](#accounts-and-google-sign-in) below. Skip it
+   and the app runs fully offline against localStorage.
 
 ### Development
 
@@ -106,7 +91,6 @@ npm run preview
 3. Stay focused - the timer pauses if you:
    - Look away from the screen
    - Close your eyes for too long
-   - Pick up your phone
    - Leave the camera view
 4. Complete 4 work sessions for a long break
 
@@ -120,8 +104,7 @@ FocusFlow works without Supabase configuration:
 ### Focus Detection
 
 The app uses AI models running in your browser:
-- **Face Landmarks Detection**: MediaPipe Face Mesh via TensorFlow.js
-- **Object Detection**: COCO-SSD for phone detection
+- **Face Landmarks Detection**: MediaPipe Tasks FaceLandmarker (WebAssembly)
 
 All processing happens locally - no video is sent to servers.
 
@@ -167,6 +150,81 @@ focusflow/
 │   └── schema.sql         # Database schema
 └── ...config files
 ```
+
+## Accounts and Google sign-in
+
+Entirely optional. Without it the app works offline and keeps everything in
+localStorage. With it, sessions and settings follow you between devices.
+
+All of the app-side code already exists. These steps only create the accounts
+and paste in two keys.
+
+### 1. Create the Supabase project
+
+1. Sign in at [supabase.com](https://supabase.com) and create a project.
+2. Open **SQL Editor** and run, in this order:
+   - `supabase/schema.sql` — settings, sessions and distraction tables
+   - `supabase/migrations/0002_profiles.sql` — profiles, plus a trigger that
+     creates a profile row automatically on signup
+3. Open **Settings → API** and copy the **Project URL** and the **anon public**
+   key into `.env`:
+
+```
+VITE_SUPABASE_URL=https://your-project.supabase.co
+VITE_SUPABASE_ANON_KEY=your-anon-key
+```
+
+The anon key is meant to be public — it ships in the browser bundle by design.
+Row Level Security is what protects the data: every table has policies
+restricting rows to `auth.uid()`, so one account cannot read another's.
+
+The **service_role** key is the opposite. It bypasses RLS entirely. Never put
+it in `.env`, this repo, or anything the browser loads.
+
+### 2. Create the Google OAuth client
+
+1. In [Google Cloud Console](https://console.cloud.google.com), create a
+   project, then go to **APIs & Services → OAuth consent screen**. Choose
+   **External**, fill in the app name and your support email, and add your own
+   address under **Test users** while the app is unpublished.
+2. Go to **Credentials → Create credentials → OAuth client ID**, type
+   **Web application**.
+3. Under **Authorized redirect URIs** add exactly one entry — your Supabase
+   callback, not your app's URL:
+
+```
+https://<your-project-ref>.supabase.co/auth/v1/callback
+```
+
+4. Copy the **Client ID** and **Client secret**.
+
+### 3. Connect them
+
+1. In Supabase, go to **Authentication → Providers → Google**, enable it, and
+   paste the Client ID and secret.
+2. Go to **Authentication → URL Configuration** and set:
+   - **Site URL**: `http://localhost:3000` for local work
+   - **Redirect URLs**: add both `http://localhost:3000` and your deployed
+     origin, e.g. `https://your-app.vercel.app`
+
+Sign-in sends people back to `window.location.origin`, so any origin you use
+has to be listed here or Supabase refuses the redirect.
+
+### 4. Deploying
+
+Add `VITE_SUPABASE_URL` and `VITE_SUPABASE_ANON_KEY` under **Settings →
+Environment Variables** in Vercel, then redeploy. Vite inlines `VITE_*` values
+at build time, so a redeploy is required — setting them is not enough.
+
+### Troubleshooting
+
+| Symptom | Cause |
+|---|---|
+| "Offline Mode" on the sign-in page | `.env` missing or not picked up — restart the dev server |
+| `redirect_uri_mismatch` from Google | The redirect URI must be the Supabase `/auth/v1/callback` URL, not your app's |
+| Signs in, bounces back signed out | Your origin is not in Supabase's **Redirect URLs** |
+| Signed in but no name or avatar | `0002_profiles.sql` has not been run; the app falls back to Google metadata |
+| Works locally, not on Vercel | Env vars not set in Vercel, or set but not redeployed |
 
 ## Browser Support
 

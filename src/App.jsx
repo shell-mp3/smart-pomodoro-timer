@@ -1,6 +1,7 @@
 import { Routes, Route, Link, useLocation } from 'react-router-dom'
 import { NotificationProvider } from './components/UI/Notification'
 import AuthGuard from './components/Auth/AuthGuard'
+import UserMenu from './components/Auth/UserMenu'
 import Home from './pages/Home'
 import Welcome from './pages/Welcome'
 import Dashboard from './pages/Dashboard'
@@ -61,13 +62,7 @@ function Navigation() {
               </Link>
             )}
 
-            {user && (
-              <div className="ml-2 w-8 h-8 rounded-full bg-accent-green/20 flex items-center justify-center">
-                <span className="text-sm font-medium text-accent-green">
-                  {user.email?.[0]?.toUpperCase() || 'U'}
-                </span>
-              </div>
-            )}
+            {user && <UserMenu />}
           </div>
         </div>
       </nav>
