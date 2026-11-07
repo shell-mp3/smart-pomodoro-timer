@@ -75,10 +75,9 @@ export function calculateFocusScore(recentFocusStates) {
  * @returns {string|null} Distraction reason or null if focused
  */
 export function getDistractionReason(states) {
-  const { faceDetected, phoneDetected, eyesOpen, headFacingForward } = states
+  const { faceDetected, eyesOpen, headFacingForward } = states
 
   if (!faceDetected) return 'no_face'
-  if (phoneDetected) return 'phone_detected'
   if (!eyesOpen) return 'eyes_closed'
   if (!headFacingForward) return 'head_turned'
 
@@ -93,7 +92,6 @@ export function getDistractionReason(states) {
 export function getDistractionMessage(reason) {
   const messages = {
     no_face: 'Face not detected',
-    phone_detected: 'Phone detected',
     eyes_closed: 'Eyes appear closed',
     head_turned: 'Head turned away'
   }

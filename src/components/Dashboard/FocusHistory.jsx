@@ -70,7 +70,6 @@ export default function FocusHistory() {
   const distractionChartData = useMemo(() => {
     const counts = {
       no_face: 0,
-      phone_detected: 0,
       eyes_closed: 0,
       head_turned: 0
     }

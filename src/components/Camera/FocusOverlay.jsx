@@ -8,7 +8,6 @@ export default function FocusOverlay() {
     distractionReason,
     focusScore,
     modelsLoaded,
-    phoneDetectionReady,
     modelError,
     detectionEnabled
   } = useFocusContext()
@@ -67,12 +66,6 @@ export default function FocusOverlay() {
           <span className="text-xs text-white font-medium">{focusScore}%</span>
         </div>
 
-        {/* COCO-SSD lands ~15s after the face model; note it until then */}
-        {!phoneDetectionReady && (
-          <div className="bg-dark-900/80 backdrop-blur-sm rounded-lg px-2 py-1">
-            <span className="text-[10px] text-dark-300">phone detection loading</span>
-          </div>
-        )}
       </div>
 
       {/* Status badge */}

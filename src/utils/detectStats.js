@@ -17,7 +17,6 @@ const blank = () => ({
 
 export const stats = {
   face: blank(),
-  object: blank(),
   video: { w: 0, h: 0, readyState: 0 },
   backend: null,
   skippedInFlight: 0,

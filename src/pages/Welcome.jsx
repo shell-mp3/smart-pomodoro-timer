@@ -14,7 +14,7 @@ const features = [
     color: 'text-sky-400',
     title: 'It notices when you drift',
     description:
-      'Your webcam watches for the usual suspects — looking away, eyes closed, phone in hand — and pauses until you are back.'
+      'Your webcam watches for the usual suspects — looking away, eyes shut, head turned — and pauses until you are back.'
   },
   {
     icon: ChartIcon,

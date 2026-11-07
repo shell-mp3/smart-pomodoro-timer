@@ -14,7 +14,6 @@ export default function DebugPanel() {
     focusScore,
     detectionStates,
     modelsLoaded,
-    phoneDetectionReady,
     cameraEnabled,
     detectionEnabled
   } = useFocusContext()
@@ -27,7 +26,6 @@ export default function DebugPanel() {
   if (!isDebugEnabled()) return null
 
   const f = stats.face
-  const o = stats.object
   const hitRate = f.calls ? Math.round((f.hits / (f.hits + f.misses || 1)) * 100) : 0
 
   const Row = ({ label, value, warn }) => (
@@ -44,7 +42,7 @@ export default function DebugPanel() {
       <Row label="backend" value={stats.backend || '—'} warn={stats.backend !== 'webgl'} />
       <Row label="video" value={`${stats.video.w}x${stats.video.h} rs=${stats.video.readyState}`} warn={!stats.video.w} />
       <Row label="camera / detect" value={`${cameraEnabled ? 'on' : 'off'} / ${detectionEnabled ? 'on' : 'off'}`} />
-      <Row label="models / phone" value={`${modelsLoaded ? 'ready' : 'loading'} / ${phoneDetectionReady ? 'ready' : 'loading'}`} />
+      <Row label="models" value={modelsLoaded ? 'ready' : 'loading'} />
 
       <div className="my-2 border-t border-dark-700" />
 
@@ -57,7 +55,6 @@ export default function DebugPanel() {
 
       <div className="my-2 border-t border-dark-700" />
 
-      <Row label="object infer ms" value={`${o.lastMs} (max ${o.maxMs})`} warn={o.lastMs > 200} />
       <Row label="skipped (busy)" value={String(stats.skippedInFlight)} />
       <Row
         label="tensors"
@@ -72,7 +69,7 @@ export default function DebugPanel() {
       <Row label="score" value={`${focusScore}%`} />
       <Row
         label="signals"
-        value={`face=${detectionStates.faceDetected} eyes=${detectionStates.eyesOpen} fwd=${detectionStates.headFacingForward} phone=${detectionStates.phoneDetected}`}
+        value={`face=${detectionStates.faceDetected} eyes=${detectionStates.eyesOpen} fwd=${detectionStates.headFacingForward}`}
       />
     </div>
   )

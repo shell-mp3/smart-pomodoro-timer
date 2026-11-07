@@ -13,14 +13,12 @@ export function FocusProvider({ children }) {
   const [focusScore, setFocusScore] = useState(100)
   const [detectionEnabled, setDetectionEnabled] = useState(false)
   const [modelsLoaded, setModelsLoaded] = useState(false)
-  const [phoneDetectionReady, setPhoneDetectionReady] = useState(false)
   const [modelError, setModelError] = useState(null)
   const [cameraEnabled, setCameraEnabled] = useState(false)
   const [cameraError, setCameraError] = useState(null)
 
   const [detectionStates, setDetectionStates] = useState({
     faceDetected: true,
-    phoneDetected: false,
     eyesOpen: true,
     headFacingForward: true
   })
@@ -131,8 +129,6 @@ export function FocusProvider({ children }) {
     disableDetection,
     modelsLoaded,
     setModelsLoaded,
-    phoneDetectionReady,
-    setPhoneDetectionReady,
     modelError,
     setModelError,
 
