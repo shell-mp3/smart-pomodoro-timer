@@ -10,6 +10,7 @@ import useSession from '../../hooks/useSession'
 import useSettings from '../../hooks/useSettings'
 import { useFocusContext } from '../../context/FocusContext'
 import { useNotification } from '../UI/Notification'
+import { playTick } from '../../utils/tickSound'
 
 export default function Timer() {
   const cameraRef = useRef(null)
@@ -85,8 +86,11 @@ export default function Timer() {
   const handleTick = useCallback((timeLeft, phase, focused) => {
     if (phase === 'work' && focused) {
       recordFocusedSecond()
+      // The tick only runs while the work is actually counting, so it stops
+      // the moment focus breaks - the silence is itself a signal.
+      if (settings.ticking_enabled) playTick()
     }
-  }, [recordFocusedSecond])
+  }, [recordFocusedSecond, settings.ticking_enabled])
 
   const {
     timeLeft,
@@ -197,23 +201,22 @@ export default function Timer() {
           onReset={handleReset}
           onSkip={handleSkip}
         />
-
-        <PomodoroFact />
       </div>
 
-      {/* Camera Section */}
-      {showCamera && (
-        <div className="w-full lg:w-80 flex-shrink-0">
-          <CameraFeed
-            ref={cameraRef}
-            onReady={handleCameraReady}
-            className="w-full"
-          />
+      {/* Side column */}
+      <div className="w-full lg:w-80 flex-shrink-0">
+        {showCamera && (
+          <>
+            <CameraFeed
+              ref={cameraRef}
+              onReady={handleCameraReady}
+              className="w-full"
+            />
 
-          <DebugPanel />
+            <DebugPanel />
 
-          {/* Quick stats */}
-          {currentSession && (
+            {/* Quick stats */}
+            {currentSession && (
             <div className="mt-4 bg-dark-800 rounded-lg p-4">
               <h4 className="text-sm font-medium text-dark-400 mb-2">Current Session</h4>
               <div className="grid grid-cols-2 gap-4 text-center">
@@ -231,9 +234,14 @@ export default function Timer() {
                 </div>
               </div>
             </div>
-          )}
+            )}
+          </>
+        )}
+
+        <div className="mt-6 lg:pt-2">
+          <PomodoroFact />
         </div>
-      )}
+      </div>
 
       {/* Toggle camera button */}
       <button

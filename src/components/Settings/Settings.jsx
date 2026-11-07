@@ -30,7 +30,8 @@ export default function Settings() {
     short_break: 5,
     long_break: 15,
     sensitivity_level: 'medium',
-    sound_enabled: true
+    sound_enabled: true,
+    ticking_enabled: false
   })
 
   const [isSaving, setIsSaving] = useState(false)
@@ -44,7 +45,8 @@ export default function Settings() {
         short_break: settings.short_break,
         long_break: settings.long_break,
         sensitivity_level: settings.sensitivity_level,
-        sound_enabled: settings.sound_enabled
+        sound_enabled: settings.sound_enabled,
+        ticking_enabled: settings.ticking_enabled ?? false
       })
     }
   }, [settings])
@@ -57,7 +59,8 @@ export default function Settings() {
         formData.short_break !== settings.short_break ||
         formData.long_break !== settings.long_break ||
         formData.sensitivity_level !== settings.sensitivity_level ||
-        formData.sound_enabled !== settings.sound_enabled
+        formData.sound_enabled !== settings.sound_enabled ||
+        formData.ticking_enabled !== (settings.ticking_enabled ?? false)
 
       setHasChanges(changed)
     }
@@ -197,6 +200,8 @@ export default function Settings() {
       <NotificationSettings
         soundEnabled={formData.sound_enabled}
         onSoundEnabledChange={(value) => handleChange('sound_enabled', value)}
+        tickingEnabled={formData.ticking_enabled}
+        onTickingEnabledChange={(value) => handleChange('ticking_enabled', value)}
       />
 
       {/* Action Buttons */}
