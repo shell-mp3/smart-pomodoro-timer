@@ -1,10 +1,28 @@
-<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 32 32">
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64">
+  <!-- Tab favicons render around 16px, so this is a bolder, flatter cut of the
+       in-app mark: fewer details, stronger contrast between fruit and calyx. -->
   <defs>
-    <linearGradient id="grad" x1="0%" y1="0%" x2="100%" y2="100%">
-      <stop offset="0%" style="stop-color:#10b981"/>
-      <stop offset="100%" style="stop-color:#3b82f6"/>
-    </linearGradient>
+    <radialGradient id="body" cx="34%" cy="30%" r="78%">
+      <stop offset="0%" stop-color="#FF6B57"/>
+      <stop offset="48%" stop-color="#E63A28"/>
+      <stop offset="100%" stop-color="#A81D14"/>
+    </radialGradient>
+    <radialGradient id="leaf" cx="30%" cy="25%" r="80%">
+      <stop offset="0%" stop-color="#43A83A"/>
+      <stop offset="100%" stop-color="#1B6B30"/>
+    </radialGradient>
   </defs>
-  <rect width="32" height="32" rx="6" fill="url(#grad)"/>
-  <path d="M16 6L8 18h6v8l8-12h-6z" fill="white"/>
+
+  <ellipse cx="32" cy="40" rx="23" ry="21" fill="url(#body)"/>
+  <ellipse cx="23" cy="31" rx="7" ry="4.5" fill="#fff" opacity="0.28" transform="rotate(-28 23 31)"/>
+
+  <g transform="translate(32 19)">
+    <rect x="-3" y="-11" width="6" height="10" rx="3" fill="#1B6B30"/>
+    <ellipse cx="10" cy="0" rx="10" ry="4.2" fill="url(#leaf)"/>
+    <ellipse cx="10" cy="0" rx="10" ry="4.2" fill="url(#leaf)" transform="rotate(72)"/>
+    <ellipse cx="10" cy="0" rx="10" ry="4.2" fill="url(#leaf)" transform="rotate(144)"/>
+    <ellipse cx="10" cy="0" rx="10" ry="4.2" fill="url(#leaf)" transform="rotate(216)"/>
+    <ellipse cx="10" cy="0" rx="10" ry="4.2" fill="url(#leaf)" transform="rotate(288)"/>
+    <circle r="4.5" fill="#1B6B30"/>
+  </g>
 </svg>
