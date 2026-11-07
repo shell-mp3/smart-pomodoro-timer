@@ -226,6 +226,49 @@ at build time, so a redeploy is required — setting them is not enough.
 | Signed in but no name or avatar | `0002_profiles.sql` has not been run; the app falls back to Google metadata |
 | Works locally, not on Vercel | Env vars not set in Vercel, or set but not redeployed |
 
+## Deploying to GitHub Pages
+
+Pushing to `main` builds and publishes automatically via
+`.github/workflows/deploy.yml`. The site lands at:
+
+```
+https://<user>.github.io/<repo>/
+```
+
+### One-time setup
+
+1. **Settings → Pages → Source: GitHub Actions.** Without this the workflow
+   runs and the deploy step fails.
+2. **Settings → Secrets and variables → Actions**, add:
+   - `VITE_SUPABASE_URL`
+   - `VITE_SUPABASE_ANON_KEY`
+
+   Vite inlines `VITE_*` at build time, so these are needed by the build, not
+   the runtime. The anon key ends up in the published bundle either way - that
+   is by design, and row level security is what protects the data. Keeping it
+   in secrets just avoids committing it.
+3. **Allow the new origin for sign-in**, or Google will refuse the redirect:
+   - Google Cloud Console → Clients → your OAuth client →
+     **Authorized JavaScript origins**: add `https://<user>.github.io`
+   - Supabase → Authentication → URL Configuration → **Redirect URLs**:
+     add `https://<user>.github.io/<repo>/` (with the trailing slash)
+
+### Why a project site needs extra care
+
+A project site is served from `/<repo>/`, not the domain root, and GitHub
+Pages has no server-side rewrites. Three pieces handle that:
+
+- `BASE_PATH` in the workflow sets Vite's `base`, so asset URLs carry the
+  prefix. Left unset (local dev, Vercel) it stays at `/`.
+- `BrowserRouter basename={import.meta.env.BASE_URL}` tells the router the
+  same thing.
+- `public/404.html` catches direct hits on client-side routes, stashes the
+  path in the query string and bounces to `index.html`, which restores it
+  before React mounts.
+
+OAuth redirects use `appUrl()` rather than `window.location.origin`, because
+the origin alone points at the domain root, which is not the app.
+
 ## Browser Support
 
 - Chrome (recommended)
