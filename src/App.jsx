@@ -1,7 +1,9 @@
+import { useEffect, useState } from 'react'
 import { Routes, Route, Link, useLocation } from 'react-router-dom'
 import { NotificationProvider } from './components/UI/Notification'
 import AuthGuard from './components/Auth/AuthGuard'
 import UserMenu from './components/Auth/UserMenu'
+import SplashScreen from './components/UI/SplashScreen'
 import Home from './pages/Home'
 import Welcome from './pages/Welcome'
 import Dashboard from './pages/Dashboard'
@@ -95,9 +97,24 @@ function SettingsIcon({ className }) {
   )
 }
 
+// Keep the splash up briefly even on a warm load, so it reads as an intro
+// rather than a flash of red.
+const MIN_SPLASH_MS = 1100
+
 export default function App() {
+  const { loading: authLoading } = useAuth()
+  const [minTimePassed, setMinTimePassed] = useState(false)
+
+  useEffect(() => {
+    const t = setTimeout(() => setMinTimePassed(true), MIN_SPLASH_MS)
+    return () => clearTimeout(t)
+  }, [])
+
+  const booting = authLoading || !minTimePassed
+
   return (
     <NotificationProvider>
+      <SplashScreen show={booting} />
       <div className="min-h-screen bg-dark-900">
         <Navigation />
         <main>
