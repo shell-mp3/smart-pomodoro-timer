@@ -4,6 +4,7 @@ import AuthGuard from './components/Auth/AuthGuard'
 import UserMenu from './components/Auth/UserMenu'
 import SplashScreen from './components/UI/SplashScreen'
 import Tomato from './components/UI/Tomato'
+import PageTransition from './components/UI/PageTransition'
 import Home from './pages/Home'
 import Welcome from './pages/Welcome'
 import Dashboard from './pages/Dashboard'
@@ -26,7 +27,7 @@ function Navigation() {
       <nav className="max-w-6xl mx-auto px-4">
         <div className="flex items-center justify-between h-16">
           {/* Logo */}
-          <Link to="/" className="flex items-center gap-2.5 group">
+          <Link to="/" className="pressable pressable-sm flex items-center gap-2.5 group">
             <Tomato className="w-7 h-7 transition-transform duration-300 ease-ios group-hover:scale-110" />
             <span className="font-semibold text-[17px] tracking-tight hidden sm:block">Pomodoro Timer</span>
           </Link>
@@ -38,8 +39,7 @@ function Navigation() {
                 key={path}
                 to={path}
                 className={`
-                  flex items-center gap-2 px-3.5 py-2 rounded-full text-[14px] font-medium
-                  transition-all duration-200 ease-ios active:scale-[0.97]
+                  pressable pressable-sm flex items-center gap-2 px-3.5 py-2 rounded-full text-[14px] font-medium
                   ${location.pathname === path
                     ? 'bg-dark-700 text-white shadow-ios'
                     : 'text-dark-300 hover:text-white hover:bg-dark-700/50'
@@ -115,6 +115,7 @@ export default function App() {
       <div className="min-h-screen bg-dark-900">
         <Navigation />
         <main>
+          <PageTransition>
           <Routes>
             <Route path="/" element={<Home />} />
             <Route path="/welcome" element={<Welcome />} />
@@ -129,6 +130,7 @@ export default function App() {
             <Route path="/settings" element={<Settings />} />
             <Route path="/auth" element={<Auth />} />
           </Routes>
+          </PageTransition>
         </main>
       </div>
     </>

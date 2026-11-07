@@ -34,8 +34,8 @@
   .btn {
     @apply inline-flex items-center justify-center gap-2 px-5 py-2.5 rounded-full
            font-semibold text-[15px] tracking-tight
-           transition-all duration-200 ease-ios
-           active:scale-[0.97]
+           transition-[transform,background-color,color,box-shadow,filter] duration-200 ease-ios
+           active:scale-[0.96]
            focus:outline-none focus-visible:ring-2 focus-visible:ring-offset-2 focus-visible:ring-offset-dark-900
            disabled:opacity-40 disabled:cursor-not-allowed disabled:active:scale-100;
   }
@@ -169,5 +169,125 @@
   }
   .splash-out {
     animation: splash-fade-out 0.2s ease forwards;
+  }
+}
+
+/* ---------------------------------------------------------------------------
+   Motion system
+   Springs, not cubic-beziers. Each linear() below is a sampled spring solution
+   so the curve is the real thing rather than an eyeballed approximation:
+     move   damping 1.0, response 0.4s  - critically damped, no overshoot
+     drawer damping 0.8, response 0.3s  - slight overshoot, peaks ~1.5%
+     press  damping 1.0, response 0.18s - fast acknowledgement
+   CSS transitions are used deliberately: they interpolate from the current
+   computed value, so an interrupted transition continues from where it is on
+   screen rather than snapping. There are no drag gestures in this app, so
+   velocity handoff has nothing to inherit from.
+--------------------------------------------------------------------------- */
+:root {
+  --spring-move: linear(0.0, 0.05, 0.1595, 0.2884, 0.4154, 0.53, 0.6284, 0.71, 0.776, 0.8284, 0.8695, 0.9014, 0.9259, 0.9445, 0.9587, 0.9693, 0.9773, 0.9832, 0.9876, 0.9909, 0.9933, 0.9951, 0.9964, 0.9974, 0.9981, 0.9986, 1.0);
+  --spring-move-dur: 580ms;
+
+  --spring-drawer: linear(0.0, 0.0778, 0.2444, 0.4313, 0.6022, 0.7415, 0.8459, 0.9185, 0.9656, 0.9934, 1.008, 1.0141, 1.0151, 1.0135, 1.0108, 1.008, 1.0055, 1.0035, 1.0021, 1.001, 1.0004, 1.0, 0.9998, 0.9998, 0.9998, 0.9998, 1.0);
+  --spring-drawer-dur: 550ms;
+
+  --spring-press: linear(0.0, 0.0501, 0.1598, 0.289, 0.4161, 0.5309, 0.6292, 0.7107, 0.7767, 0.8291, 0.8701, 0.9019, 0.9263, 0.9449, 0.9589, 0.9695, 0.9774, 0.9834, 0.9877, 0.991, 0.9934, 0.9952, 0.9965, 0.9974, 0.9981, 0.9986, 1.0);
+  --spring-press-dur: 260ms;
+}
+
+/* Press acknowledgement fires on :active, which is pointer-down - not on
+   click, which is release. Transform and opacity only, so it stays off the
+   layout and paint paths. */
+.pressable {
+  transition:
+    transform var(--spring-press-dur) var(--spring-press),
+    background-color 160ms ease-out,
+    color 160ms ease-out,
+    box-shadow 200ms ease-out;
+  -webkit-tap-highlight-color: transparent;
+  touch-action: manipulation;
+}
+.pressable:active:not(:disabled) {
+  transform: scale(0.94);
+}
+.pressable-sm:active:not(:disabled) {
+  transform: scale(0.97);
+}
+
+/* Materialize: blur + scale + fade, rather than a flat opacity fade. Gives
+   surfaces the sense of resolving into place that a plain fade lacks. */
+@keyframes materialize {
+  from {
+    opacity: 0;
+    transform: scale(0.97) translateY(6px);
+    filter: blur(6px);
+  }
+  to {
+    opacity: 1;
+    transform: scale(1) translateY(0);
+    filter: blur(0);
+  }
+}
+
+@keyframes materialize-anchored {
+  from {
+    opacity: 0;
+    transform: scale(0.9) translateY(-4px);
+    filter: blur(4px);
+  }
+  to {
+    opacity: 1;
+    transform: scale(1) translateY(0);
+    filter: blur(0);
+  }
+}
+
+@keyframes dematerialize-anchored {
+  from { opacity: 1; transform: scale(1); filter: blur(0); }
+  to   { opacity: 0; transform: scale(0.95); filter: blur(3px); }
+}
+
+.page-enter {
+  animation: materialize var(--spring-move-dur) var(--spring-move) both;
+}
+
+/* Anchored to its trigger, so it grows out of the control that opened it */
+.menu-enter {
+  animation: materialize-anchored var(--spring-drawer-dur) var(--spring-drawer) both;
+  transform-origin: top right;
+}
+.menu-exit {
+  animation: dematerialize-anchored 140ms ease-in both;
+  transform-origin: top right;
+  pointer-events: none;
+}
+
+/* Reduced motion: keep the state change legible, drop the movement. Every
+   animation above has a crossfade or instant alternative here. */
+@media (prefers-reduced-motion: reduce) {
+  .pressable,
+  .pressable:active:not(:disabled),
+  .pressable-sm:active:not(:disabled) {
+    transition-duration: 1ms;
+    transform: none;
+  }
+
+  .page-enter,
+  .menu-enter {
+    animation: fadeIn 120ms ease-out both;
+  }
+
+  .menu-exit {
+    animation: none;
+    opacity: 0;
+  }
+
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
   }
 }

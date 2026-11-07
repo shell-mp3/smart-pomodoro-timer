@@ -13,7 +13,7 @@ export default function TimerControls({
       <button
         onClick={onReset}
         disabled={disabled}
-        className="p-3 rounded-full bg-dark-700 hover:bg-dark-600 text-dark-300 hover:text-white transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+        className="pressable p-3 rounded-full bg-dark-700 hover:bg-dark-600 text-dark-300 hover:text-white disabled:opacity-50 disabled:cursor-not-allowed"
         title="Reset"
       >
         <svg className="w-6 h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
@@ -30,10 +30,10 @@ export default function TimerControls({
       <button
         onClick={isRunning ? onPause : onStart}
         disabled={disabled}
-        className={`p-5 rounded-full transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed ${
+        className={`pressable p-5 rounded-full shadow-ios disabled:opacity-50 disabled:cursor-not-allowed ${
           isRunning
-            ? 'bg-accent-orange hover:bg-orange-600'
-            : 'bg-accent-green hover:bg-emerald-600'
+            ? 'bg-accent-orange hover:brightness-110'
+            : 'bg-accent-green hover:brightness-110'
         }`}
         title={isRunning ? 'Pause' : 'Start'}
       >
@@ -57,7 +57,7 @@ export default function TimerControls({
       <button
         onClick={onSkip}
         disabled={disabled}
-        className="p-3 rounded-full bg-dark-700 hover:bg-dark-600 text-dark-300 hover:text-white transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+        className="pressable p-3 rounded-full bg-dark-700 hover:bg-dark-600 text-dark-300 hover:text-white disabled:opacity-50 disabled:cursor-not-allowed"
         title="Skip to next phase"
       >
         <svg className="w-6 h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">

@@ -122,7 +122,7 @@ export default function Timer() {
       {/* Toggle camera button */}
       <button
         onClick={() => setShowCamera(!showCamera)}
-        className="fixed bottom-4 right-4 p-3 bg-dark-700 hover:bg-dark-600 rounded-full shadow-ios lg:hidden"
+        className="pressable fixed bottom-4 right-4 p-3 bg-dark-700 hover:bg-dark-600 rounded-full shadow-ios lg:hidden"
         title={showCamera ? 'Hide camera' : 'Show camera'}
       >
         <svg className="w-5 h-5 text-dark-300" fill="none" viewBox="0 0 24 24" stroke="currentColor">

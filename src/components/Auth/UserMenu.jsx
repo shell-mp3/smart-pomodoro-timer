@@ -6,9 +6,21 @@ export default function UserMenu() {
   const { user, signOut } = useAuth()
   const { profile } = useProfile()
   const [open, setOpen] = useState(false)
+  // Kept mounted briefly after close so the exit animation can play - the
+  // menu leaves along the path it arrived on instead of vanishing.
+  const [visible, setVisible] = useState(false)
   const [signingOut, setSigningOut] = useState(false)
   const [avatarFailed, setAvatarFailed] = useState(false)
   const containerRef = useRef(null)
+
+  useEffect(() => {
+    if (open) {
+      setVisible(true)
+      return
+    }
+    const t = setTimeout(() => setVisible(false), 150)
+    return () => clearTimeout(t)
+  }, [open])
 
   // Close on outside click or Escape
   useEffect(() => {
@@ -67,10 +79,12 @@ export default function UserMenu() {
         )}
       </button>
 
-      {open && (
+      {visible && (
         <div
           role="menu"
-          className="absolute right-0 mt-2 w-56 rounded-lg border border-dark-600 bg-dark-800 shadow-lg overflow-hidden z-50"
+          className={`absolute right-0 mt-2 w-56 rounded-2xl border border-dark-600 bg-dark-800 shadow-ios-lift overflow-hidden z-50 ${
+            open ? 'menu-enter' : 'menu-exit'
+          }`}
         >
           <div className="px-4 py-3 border-b border-dark-700">
             <p className="text-sm font-medium text-white truncate">{name}</p>
@@ -81,7 +95,7 @@ export default function UserMenu() {
             role="menuitem"
             onClick={handleSignOut}
             disabled={signingOut}
-            className="w-full text-left px-4 py-2.5 text-sm text-dark-200 hover:bg-dark-700 hover:text-white transition-colors disabled:opacity-50"
+            className="pressable pressable-sm w-full text-left px-4 py-2.5 text-sm text-dark-200 hover:bg-dark-700 hover:text-white disabled:opacity-50"
           >
             {signingOut ? 'Signing out...' : 'Sign out'}
           </button>

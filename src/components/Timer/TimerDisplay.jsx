@@ -65,7 +65,7 @@ export default function TimerDisplay({
               strokeLinecap="round"
               strokeDasharray={CIRCUMFERENCE}
               strokeDashoffset={strokeDashoffset}
-              className="transition-all duration-1000 ease-linear"
+              className="transition-[stroke-dashoffset,stroke] duration-1000 ease-linear"
               style={{ filter: `drop-shadow(0 0 10px ${ringColor}66)` }}
             />
           </g>
@@ -119,7 +119,7 @@ export default function TimerDisplay({
             {[...Array(4)].map((_, i) => (
               <Tomato
                 key={i}
-                className={`w-4 h-4 transition-all duration-500 ease-ios ${
+                className={`w-4 h-4 transition-[opacity,transform,filter] duration-500 ease-ios ${
                   i < completed ? 'opacity-100 scale-100' : 'opacity-25 grayscale scale-90'
                 }`}
               />
