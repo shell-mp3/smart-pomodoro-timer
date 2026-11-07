@@ -53,7 +53,7 @@ function BrowserNotificationButton() {
     if (result === 'granted') {
       new Notification('Pomodoro Timer', {
         body: 'Notifications enabled!',
-        icon: `${import.meta.env.BASE_URL}favicon.svg`
+        icon: `${import.meta.env.BASE_URL}tomato.svg`
       })
     }
   }
