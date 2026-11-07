@@ -22,7 +22,9 @@ export const stats = {
   backend: null,
   skippedInFlight: 0,
   tensors: 0,
-  tensorsAtStart: null
+  tensorsAtStart: null,
+  yaw: 0,
+  pitch: 0
 }
 
 export function recordDetection(kind, { ms, count, error }) {
@@ -62,6 +64,11 @@ export function recordBackend(name) {
 
 // A steadily climbing tensor count means inference is leaking GPU memory,
 // which degrades detection over the course of a session.
+export function recordHeadPose(yaw, pitch) {
+  stats.yaw = Math.round(yaw)
+  stats.pitch = Math.round(pitch)
+}
+
 export function recordTensors(n) {
   if (stats.tensorsAtStart === null) stats.tensorsAtStart = n
   stats.tensors = n

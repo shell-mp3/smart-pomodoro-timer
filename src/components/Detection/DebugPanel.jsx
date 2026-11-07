@@ -53,6 +53,7 @@ export default function DebugPanel() {
       <Row label="face miss streak" value={`${f.missStreak} (max ${f.maxMissStreak})`} warn={f.missStreak > 2} />
       <Row label="face infer ms" value={`${f.lastMs} (max ${f.maxMs})`} warn={f.lastMs > 100} />
       <Row label="face error" value={f.lastError || 'none'} warn={!!f.lastError} />
+      <Row label="head yaw/pitch" value={`${stats.yaw}° / ${stats.pitch}°`} />
 
       <div className="my-2 border-t border-dark-700" />
 

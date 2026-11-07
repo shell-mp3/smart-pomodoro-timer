@@ -1,30 +1,34 @@
 import { useState, useEffect, useRef, useCallback } from 'react'
-import { calculateEyeAspectRatio, isHeadFacingForward, EYE_ASPECT_RATIO_THRESHOLD } from '../../utils/focusLogic'
-import { recordDetection, recordSkip, recordVideo, recordBackend, recordTensors } from '../../utils/detectStats'
+import { recordDetection, recordVideo, recordBackend, recordHeadPose } from '../../utils/detectStats'
+import { headPoseFromMatrix, normalizeAngle } from '../../utils/headPose'
 
-// MediaPipe Face Mesh eye landmark indices
-const LEFT_EYE_INDICES = [33, 160, 158, 133, 153, 144]
-const RIGHT_EYE_INDICES = [362, 385, 387, 263, 373, 380]
-const NOSE_TIP_INDEX = 1
+// Pinned to the installed @mediapipe/tasks-vision version. The WASM bundle and
+// the JS wrapper must match - a version skew between them is a silent failure.
+const WASM_PATH = 'https://cdn.jsdelivr.net/npm/@mediapipe/tasks-vision@1.1.1/wasm'
+const MODEL_PATH =
+  'https://storage.googleapis.com/mediapipe-models/face_landmarker/face_landmarker/float16/1/face_landmarker.task'
+
+// Blendshape score above which an eye counts as shut (0 = wide open, 1 = closed)
+const EYE_BLINK_THRESHOLD = 0.5
+// How far the head may turn or tilt before it stops counting as facing forward
+const YAW_LIMIT_DEG = 28
+const PITCH_LIMIT_DEG = 24
 
 export default function useFaceDetection(videoRef, enabled = false) {
   const [faceDetected, setFaceDetected] = useState(true)
   const [eyesOpen, setEyesOpen] = useState(true)
   const [headFacingForward, setHeadFacingForward] = useState(true)
-  const [isLoading, setIsLoading] = useState(true) // Start as loading
+  const [isLoading, setIsLoading] = useState(true)
   const [error, setError] = useState(null)
   const [modelReady, setModelReady] = useState(false)
 
-  const detectorRef = useRef(null)
+  const landmarkerRef = useRef(null)
   const animationFrameRef = useRef(null)
-  const lastDetectionTimeRef = useRef(0)
-  const inFlightRef = useRef(false)
-  const tfRef = useRef(null)
-
-  const DETECTION_INTERVAL = 100 // ~10 FPS
+  const lastVideoTimeRef = useRef(-1)
+  const lastTimestampRef = useRef(0)
 
   const loadModel = useCallback(async () => {
-    if (detectorRef.current) {
+    if (landmarkerRef.current) {
       setIsLoading(false)
       setModelReady(true)
       return
@@ -34,64 +38,51 @@ export default function useFaceDetection(videoRef, enabled = false) {
     setError(null)
 
     try {
-      console.log('Loading TensorFlow.js face detection model...')
+      const { FilesetResolver, FaceLandmarker } = await import('@mediapipe/tasks-vision')
+      const vision = await FilesetResolver.forVisionTasks(WASM_PATH)
 
-      // Dynamically import TensorFlow.js and face detection
-      const tf = await import('@tensorflow/tfjs')
-      await import('@tensorflow/tfjs-backend-webgl')
-      await tf.setBackend('webgl')
-      await tf.ready()
-      recordBackend(tf.getBackend())
-      tfRef.current = tf
+      landmarkerRef.current = await FaceLandmarker.createFromOptions(vision, {
+        baseOptions: { modelAssetPath: MODEL_PATH, delegate: 'GPU' },
+        runningMode: 'VIDEO',
+        numFaces: 1,
+        outputFaceBlendshapes: true,
+        outputFacialTransformationMatrixes: true
+      })
 
-      const faceLandmarksDetection = await import('@tensorflow-models/face-landmarks-detection')
-
-      const model = faceLandmarksDetection.SupportedModels.MediaPipeFaceMesh
-      // The 'mediapipe' runtime breaks in production builds: bundling the CommonJS
-      // @mediapipe/face_mesh package yields a namespace whose FaceMesh is not a
-      // constructor, so createDetector throws. The tfjs runtime uses the TF.js
-      // graph model directly - same landmarks, no CDN assets, bundles cleanly.
-      const detectorConfig = {
-        runtime: 'tfjs',
-        refineLandmarks: true,
-        maxFaces: 1
-      }
-
-      detectorRef.current = await faceLandmarksDetection.createDetector(model, detectorConfig)
-      console.log('Face detection model loaded successfully')
+      recordBackend('mediapipe-gpu')
       setModelReady(true)
       setIsLoading(false)
     } catch (err) {
-      console.error('Failed to load face detection model:', err)
+      console.error('Failed to load face landmarker:', err)
       setError(err.message)
       setIsLoading(false)
     }
   }, [])
 
-  const detectFace = useCallback(async () => {
-    if (!detectorRef.current || !enabled) return
+  const detectFace = useCallback(() => {
+    const landmarker = landmarkerRef.current
+    if (!landmarker || !enabled) return
 
-    // Only one inference at a time. The loop ticks faster than the model runs,
-    // and overlapping estimateFaces calls on a single TF.js model contend for the
-    // same WebGL context - they pile up and start returning zero faces, which
-    // reads as "Face not detected" even with a face plainly in frame.
-    if (inFlightRef.current) { recordSkip(); return }
-
-    // Get video element - handle both ref object and direct element
     const video = videoRef?.current || videoRef
-    if (!video) return
-    if (video.readyState < 2) return
-    // A stream can be ready but not yet reporting dimensions; inference on a
-    // zero-sized frame finds nothing.
+    if (!video || video.readyState < 2) return
     if (!video.videoWidth || !video.videoHeight) return
+
+    // Only run when the camera has actually produced a new frame. Re-running on
+    // the same frame wastes inference and, worse, repeats a timestamp.
+    if (video.currentTime === lastVideoTimeRef.current) return
+    lastVideoTimeRef.current = video.currentTime
     recordVideo(video)
 
-    inFlightRef.current = true
+    // detectForVideo requires strictly increasing timestamps
+    const timestamp = Math.max(lastTimestampRef.current + 1, Math.round(performance.now()))
+    lastTimestampRef.current = timestamp
+
     const startedAt = performance.now()
     try {
-      const faces = await detectorRef.current.estimateFaces(video)
+      // Synchronous: no promise, so calls cannot overlap or pile up
+      const result = landmarker.detectForVideo(video, timestamp)
+      const faces = result.faceLandmarks || []
       recordDetection('face', { ms: performance.now() - startedAt, count: faces.length })
-      if (tfRef.current) recordTensors(tfRef.current.memory().numTensors)
 
       if (faces.length === 0) {
         setFaceDetected(false)
@@ -101,50 +92,41 @@ export default function useFaceDetection(videoRef, enabled = false) {
       }
 
       setFaceDetected(true)
-      const face = faces[0]
-      const keypoints = face.keypoints
 
-      // Calculate eye aspect ratios
-      const leftEyePoints = LEFT_EYE_INDICES.map(i => keypoints[i]).filter(Boolean)
-      const rightEyePoints = RIGHT_EYE_INDICES.map(i => keypoints[i]).filter(Boolean)
-
-      if (leftEyePoints.length >= 6 && rightEyePoints.length >= 6) {
-        const leftEAR = calculateEyeAspectRatio(leftEyePoints)
-        const rightEAR = calculateEyeAspectRatio(rightEyePoints)
-        const avgEAR = (leftEAR + rightEAR) / 2
-        setEyesOpen(avgEAR > EYE_ASPECT_RATIO_THRESHOLD)
+      // Eye state straight from the model's blendshapes - no landmark geometry
+      const shapes = result.faceBlendshapes?.[0]?.categories
+      if (shapes && shapes.length) {
+        let left = 0
+        let right = 0
+        for (const c of shapes) {
+          if (c.categoryName === 'eyeBlinkLeft') left = c.score
+          else if (c.categoryName === 'eyeBlinkRight') right = c.score
+        }
+        // Average the two so a wink does not read as "eyes closed"
+        setEyesOpen((left + right) / 2 < EYE_BLINK_THRESHOLD)
       } else {
-        setEyesOpen(true) // Default to eyes open if can't detect
+        setEyesOpen(true)
       }
 
-      // Check head orientation
-      const noseTip = keypoints[NOSE_TIP_INDEX]
-      const box = face.box
-      if (box && noseTip) {
-        const faceCenter = {
-          x: box.xMin + box.width / 2,
-          y: box.yMin + box.height / 2
-        }
-        setHeadFacingForward(isHeadFacingForward(noseTip, faceCenter, box.width))
+      // Head orientation from the model's own 4x4 transformation matrix
+      const matrix = result.facialTransformationMatrixes?.[0]
+      const pose = matrix ? headPoseFromMatrix(matrix.data) : null
+      if (pose) {
+        const yaw = normalizeAngle(pose.yaw)
+        const pitch = normalizeAngle(pose.pitch)
+        recordHeadPose(yaw, pitch)
+        setHeadFacingForward(Math.abs(yaw) < YAW_LIMIT_DEG && Math.abs(pitch) < PITCH_LIMIT_DEG)
       } else {
         setHeadFacingForward(true)
       }
     } catch (err) {
       console.error('Face detection error:', err)
       recordDetection('face', { error: err && err.message })
-    } finally {
-      inFlightRef.current = false
     }
   }, [videoRef, enabled])
 
   const runDetectionLoop = useCallback(() => {
-    const now = Date.now()
-
-    if (now - lastDetectionTimeRef.current >= DETECTION_INTERVAL) {
-      detectFace()
-      lastDetectionTimeRef.current = now
-    }
-
+    detectFace()
     if (enabled) {
       animationFrameRef.current = requestAnimationFrame(runDetectionLoop)
     }
@@ -153,33 +135,23 @@ export default function useFaceDetection(videoRef, enabled = false) {
   useEffect(() => {
     if (enabled) {
       loadModel().then(() => {
-        if (detectorRef.current) {
-          runDetectionLoop()
-        }
+        if (landmarkerRef.current) runDetectionLoop()
       })
     }
 
     return () => {
-      if (animationFrameRef.current) {
-        cancelAnimationFrame(animationFrameRef.current)
-      }
+      if (animationFrameRef.current) cancelAnimationFrame(animationFrameRef.current)
     }
   }, [enabled, loadModel, runDetectionLoop])
 
   const cleanup = useCallback(() => {
-    if (animationFrameRef.current) {
-      cancelAnimationFrame(animationFrameRef.current)
+    if (animationFrameRef.current) cancelAnimationFrame(animationFrameRef.current)
+    if (landmarkerRef.current) {
+      landmarkerRef.current.close()
+      landmarkerRef.current = null
     }
-    detectorRef.current = null
+    lastVideoTimeRef.current = -1
   }, [])
 
-  return {
-    faceDetected,
-    eyesOpen,
-    headFacingForward,
-    isLoading,
-    modelReady,
-    error,
-    cleanup
-  }
+  return { faceDetected, eyesOpen, headFacingForward, isLoading, modelReady, error, cleanup }
 }
