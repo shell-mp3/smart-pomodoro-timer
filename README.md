@@ -1,6 +1,8 @@
 # Pomodoro Timer
 
-AI-powered Pomodoro timer with real-time focus tracking using your webcam.
+A Pomodoro timer that only counts the time you are actually focused. Your
+camera tells it when your attention has drifted; all detection runs locally in
+the browser and no video leaves your device.
 
 ## Features
 

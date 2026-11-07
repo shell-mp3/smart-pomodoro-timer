@@ -13,7 +13,7 @@ const features = [
     icon: EyeIcon,
     color: 'text-accent-red',
     title: 'It notices when you drift',
-    description: 'Look away, shut your eyes, turn your head — the timer pauses until you are back.'
+    description: 'Look away, shut your eyes or turn your head and the timer pauses, then picks up where it left off.'
   },
   {
     icon: ChartIcon,
@@ -44,8 +44,8 @@ export default function Welcome() {
           </h1>
 
           <p className="text-[15px] leading-relaxed text-dark-200 max-w-sm mx-auto">
-            A timer that knows whether you are actually focusing. It watches through
-            your webcam and pauses when your attention wanders.
+            A timer that only counts the time you are actually focused. Your camera
+            tells it when your attention has drifted, and it pauses until you are back.
           </p>
         </div>
 
